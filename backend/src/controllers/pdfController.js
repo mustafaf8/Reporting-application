@@ -1,85 +1,40 @@
 const path = require('path');
-const fs = require('fs');
+const ejs = require('ejs');
 const puppeteer = require('puppeteer');
 
-const templatePath = path.join(__dirname, '..', 'templates', 'proposal-template.html');
+const templatePath = path.join(__dirname, '..', 'templates', 'proposal-template.ejs');
 
 function formatCurrencyTRY(value) {
-	return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 }).format(value);
-}
-
-function buildHtml({ customerName, items }) {
-	const rowsHtml = items.map((item, index) => {
-		const lineTotal = Number(item.quantity) * Number(item.unitPrice);
-		return `
-			<tr>
-				<td style="padding:8px;border:1px solid #e5e7eb;">${index + 1}</td>
-				<td style="padding:8px;border:1px solid #e5e7eb;">${item.name}</td>
-				<td style="padding:8px;border:1px solid #e5e7eb;text-align:right;">${item.quantity}</td>
-				<td style="padding:8px;border:1px solid #e5e7eb;text-align:right;">${formatCurrencyTRY(Number(item.unitPrice))}</td>
-				<td style="padding:8px;border:1px solid #e5e7eb;text-align:right;">${formatCurrencyTRY(lineTotal)}</td>
-			</tr>`;
-	}).join('');
-
-	const grandTotal = items.reduce((sum, it) => sum + Number(it.quantity) * Number(it.unitPrice), 0);
-
-	// Basit bir inline stilli şablon (SSR HTML)
-	return `
-	<!doctype html>
-	<html lang="tr">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>Teklif - ${customerName}</title>
-		<style>
-			body{ font-family: Arial, Helvetica, sans-serif; color:#111827; }
-			.container{ max-width:900px; margin:0 auto; padding:24px; }
-			h1{ color:#4f46e5; }
-			table{ width:100%; border-collapse: collapse; margin-top:16px; }
-			th{ background:#f3f4f6; text-align:left; padding:10px; border:1px solid #e5e7eb; }
-			td{ font-size:14px; }
-			.footer{ margin-top:24px; font-size:12px; color:#6b7280; }
-		</style>
-	</head>
-	<body>
-		<div class="container">
-			<h1>Teklif</h1>
-			<p><strong>Müşteri/Proje:</strong> ${customerName}</p>
-			<table>
-				<thead>
-					<tr>
-						<th>#</th>
-						<th>Malzeme Adı</th>
-						<th style="text-align:right;">Miktar</th>
-						<th style="text-align:right;">Birim Fiyat</th>
-						<th style="text-align:right;">Tutar</th>
-					</tr>
-				</thead>
-				<tbody>
-					${rowsHtml}
-					<tr>
-						<td colspan="4" style="padding:10px; border:1px solid #e5e7eb; text-align:right; font-weight:bold;">Genel Toplam</td>
-						<td style="padding:10px; border:1px solid #e5e7eb; text-align:right; font-weight:bold;">${formatCurrencyTRY(grandTotal)}</td>
-					</tr>
-				</tbody>
-			</table>
-			<div class="footer">
-				<p>Not: Bu teklif bilgilendirme amaçlıdır. Fiyatlara KDV dahil değildir (isteğe göre güncellenebilir).</p>
-			</div>
-		</div>
-	</body>
-	</html>
-	`;
+	return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 2 }).format(Number(value || 0));
 }
 
 async function generateProposalPdf(req, res) {
 	try {
-		const { customerName, items } = req.body || {};
+		const { customerName, items, vatRate = 0, discountRate = 0, extraCosts = 0, status, company } = req.body || {};
 		if (!customerName || !Array.isArray(items) || items.length === 0) {
 			return res.status(400).json({ message: 'Geçersiz veri. Müşteri adı ve en az bir malzeme gereklidir.' });
 		}
 
-		const html = buildHtml({ customerName, items });
+		const subtotal = items.reduce((sum, it) => sum + Number(it.quantity) * Number(it.unitPrice), 0);
+		const discountAmount = subtotal * (Number(discountRate) / 100);
+		const withExtras = subtotal - discountAmount + Number(extraCosts);
+		const vatAmount = withExtras * (Number(vatRate) / 100);
+		const grandTotal = Math.round((withExtras + vatAmount) * 100) / 100;
+
+		const html = await ejs.renderFile(templatePath, {
+			customerName,
+			items,
+			createdAt: Date.now(),
+			status,
+			subtotal,
+			vatRate: Number(vatRate),
+			vatAmount,
+			discountRate: Number(discountRate),
+			extraCosts: Number(extraCosts),
+			grandTotal,
+			company,
+			formatCurrency: (v) => formatCurrencyTRY(v)
+		}, { async: true });
 
 		const browser = await puppeteer.launch({
 			headless: 'new',

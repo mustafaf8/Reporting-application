@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import api from '../services/api';
 
 // Bu bileşenin tek sorumluluğu, bir teklif formu göstermek,
 // kullanıcı girdilerini yönetmek ve PDF oluşturma işlemini tetiklemektir.
@@ -18,6 +19,11 @@ const ProposalForm = () => {
         quantity: 1,
         unitPrice: 0
     });
+
+    // KDV, iskonto, ek maliyet
+    const [vatRate, setVatRate] = useState(0);
+    const [discountRate, setDiscountRate] = useState(0);
+    const [extraCosts, setExtraCosts] = useState(0);
 
     // API isteği sırasında yüklenme durumunu yöneten state (butonun deaktif olması için)
     const [loading, setLoading] = useState(false);
@@ -56,10 +62,10 @@ const ProposalForm = () => {
 
         try {
             // Backend'deki API endpoint'ine POST isteği gönder
-            const response = await axios.post(
-                'http://localhost:5000/api/generate-pdf', // Backend adresi
-                { customerName, items }, // Gönderilecek veri (payload)
-                { responseType: 'blob' }  // ÖNEMLİ: Cevabın bir dosya/blob olduğunu belirtir
+            const response = await api.post(
+                '/api/generate-pdf',
+                { customerName, items, vatRate, discountRate, extraCosts },
+                { responseType: 'blob' }
             );
 
             // 1. Gelen blob verisinden geçici bir URL oluştur
@@ -131,6 +137,22 @@ const ProposalForm = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Vergi/İskonto/Ek Maliyet */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">KDV Oranı (%)</label>
+                    <input type="number" min="0" step="0.01" value={vatRate} onChange={(e)=>setVatRate(parseFloat(e.target.value)||0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">İskonto Oranı (%)</label>
+                    <input type="number" min="0" step="0.01" value={discountRate} onChange={(e)=>setDiscountRate(parseFloat(e.target.value)||0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Ek Maliyetler (TL)</label>
+                    <input type="number" min="0" step="0.01" value={extraCosts} onChange={(e)=>setExtraCosts(parseFloat(e.target.value)||0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
+                </div>
+            </div>
             
             {/* Eklenen Malzemeler Listesi */}
             <div className="space-y-2">
@@ -157,9 +179,15 @@ const ProposalForm = () => {
             {/* Toplam Tutar ve PDF Oluşturma Butonu */}
             <div className="border-t pt-4 space-y-4">
                 <div className="flex justify-end items-center text-xl font-bold">
-                    <span className="text-gray-600 mr-4">Genel Toplam:</span>
+                    <span className="text-gray-600 mr-4">Genel Toplam (yaklaşık):</span>
                     <span className="text-indigo-600">
-                        {items.reduce((total, item) => total + item.quantity * item.unitPrice, 0).toFixed(2)} TL
+                        {(() => {
+                            const subtotal = items.reduce((t, it)=> t + it.quantity*it.unitPrice, 0);
+                            const discounted = subtotal * (1 - (discountRate/100));
+                            const withExtras = discounted + extraCosts;
+                            const withVat = withExtras * (1 + (vatRate/100));
+                            return withVat.toFixed(2);
+                        })()} TL
                     </span>
                 </div>
                 <button 
