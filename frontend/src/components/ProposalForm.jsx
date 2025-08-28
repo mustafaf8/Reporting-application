@@ -38,6 +38,12 @@ const ProposalForm = () => {
         email: ''
     });
 
+    // Teklifi veren kişi (zorunlu)
+    const [issuer, setIssuer] = useState({
+        name: '',
+        phone: ''
+    });
+
     // API isteği sırasında yüklenme durumunu yöneten state (butonun deaktif olması için)
     const [loading, setLoading] = useState(false);
    
@@ -68,8 +74,8 @@ const ProposalForm = () => {
     // Backend'e istek atıp PDF'i oluşturan ve indiren ana fonksiyon
     const handleGeneratePdf = async () => {
         // Müşteri adı veya malzeme listesi boşsa işlemi başlatma
-        if (!customer.fullName || items.length === 0) {
-            toast.error('PDF oluşturmak için lütfen müşteri adını ve en az bir malzeme ekleyin.');
+        if (!customer.fullName || !issuer.name || !issuer.phone || items.length === 0) {
+            toast.error('Lütfen müşteri adı, teklifi veren kişi ve telefon ile en az bir malzeme girin.');
             return;
         }
 
@@ -78,7 +84,7 @@ const ProposalForm = () => {
         try {
             // 0) Önce teklifi DB'ye kaydet (giriş yapılmış olmalı)
             const companyForPdf = await buildCompanyForPdf();
-            const payload = { customerName: customer.fullName, items, vatRate, discountRate, extraCosts, company: companyForPdf, customer };
+            const payload = { customerName: customer.fullName, items, vatRate, discountRate, extraCosts, company: companyForPdf, customer, issuer };
             try {
                 await api.post('/api/proposals', payload);
                 // Başarı tostu interceptor tarafından gösterilecek
@@ -128,7 +134,7 @@ const ProposalForm = () => {
 
     return (
         <div className="space-y-8">
-            <h2 className="text-2xl font-semibold text-gray-800 border-b pb-4">Yeni Teklif Detayları</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 ">Yeni Teklif Detayları</h2>
 
             {/* Müşteri Bilgileri (Opsiyonel) - Ad Soyad zorunlu */}
             <div className="space-y-3 p-4 border rounded-lg bg-white">
@@ -177,6 +183,21 @@ const ProposalForm = () => {
                     <button onClick={handleAddItem} className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                         Ekle
                     </button>
+                </div>
+            </div>
+
+            {/* Teklifi Veren (Zorunlu) */}
+            <div className="space-y-3 p-4 border rounded-lg bg-white">
+                <h3 className="text-xl font-semibold text-gray-800">Teklifi Veren</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Ad Soyad (zorunlu)</label>
+                        <input type="text" value={issuer.name} onChange={(e)=>setIssuer({ ...issuer, name: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Örn: Mustafa Nahsan" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Telefon (zorunlu)</label>
+                        <input type="text" value={issuer.phone} onChange={(e)=>setIssuer({ ...issuer, phone: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="+90 5xx xxx xx xx" />
+                    </div>
                 </div>
             </div>
 
