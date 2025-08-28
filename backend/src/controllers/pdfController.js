@@ -10,7 +10,7 @@ function formatCurrencyTRY(value) {
 
 async function generateProposalPdf(req, res) {
 	try {
-		const { customerName, items, vatRate = 0, discountRate = 0, extraCosts = 0, status, company } = req.body || {};
+		const { customerName, items, vatRate = 0, discountRate = 0, extraCosts = 0, status, company, customer } = req.body || {};
 		if (!customerName || !Array.isArray(items) || items.length === 0) {
 			return res.error('Geçersiz veri. Müşteri adı ve en az bir malzeme gereklidir.', 400);
 		}
@@ -33,6 +33,7 @@ async function generateProposalPdf(req, res) {
 			extraCosts: Number(extraCosts),
 			grandTotal,
 			company,
+			customer,
 			formatCurrency: (v) => formatCurrencyTRY(v)
 		}, { async: true });
 

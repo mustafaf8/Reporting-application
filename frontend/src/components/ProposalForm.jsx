@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import companyConfig, { buildCompanyForPdf } from '../config/company';
 
 // Bu bileşenin tek sorumluluğu, bir teklif formu göstermek,
 // kullanıcı girdilerini yönetmek ve PDF oluşturma işlemini tetiklemektir.
 const ProposalForm = () => {
     // --- STATE YÖNETİMİ ---
 
-    // Müşteri adını tutan state
-    const [customerName, setCustomerName] = useState('');
+    // Ayrı müşteri adı alanı kaldırıldı; müşteri adı customer.fullName üzerinden alınır
 
     // Eklenen malzemelerin listesini (bir dizi nesne) tutan state
     const [items, setItems] = useState([]);
@@ -25,6 +25,18 @@ const ProposalForm = () => {
     const [vatRate, setVatRate] = useState(0);
     const [discountRate, setDiscountRate] = useState(0);
     const [extraCosts, setExtraCosts] = useState(0);
+
+    // Şirket bilgileri: formdan kaldırıldı, merkezi konfigürasyondan geliyor
+    const company = companyConfig;
+
+    // Müşteri isteğe bağlı alanları
+    const [customer, setCustomer] = useState({
+        fullName: '',
+        companyName: '',
+        phone: '',
+        address: '',
+        email: ''
+    });
 
     // API isteği sırasında yüklenme durumunu yöneten state (butonun deaktif olması için)
     const [loading, setLoading] = useState(false);
@@ -56,8 +68,8 @@ const ProposalForm = () => {
     // Backend'e istek atıp PDF'i oluşturan ve indiren ana fonksiyon
     const handleGeneratePdf = async () => {
         // Müşteri adı veya malzeme listesi boşsa işlemi başlatma
-        if (!customerName || items.length === 0) {
-            toast.error('PDF oluşturmak için lütfen müşteri adı girin ve en az bir malzeme ekleyin.');
+        if (!customer.fullName || items.length === 0) {
+            toast.error('PDF oluşturmak için lütfen müşteri adını ve en az bir malzeme ekleyin.');
             return;
         }
 
@@ -65,7 +77,8 @@ const ProposalForm = () => {
 
         try {
             // 0) Önce teklifi DB'ye kaydet (giriş yapılmış olmalı)
-            const payload = { customerName, items, vatRate, discountRate, extraCosts };
+            const companyForPdf = await buildCompanyForPdf();
+            const payload = { customerName: customer.fullName, items, vatRate, discountRate, extraCosts, company: companyForPdf, customer };
             try {
                 await api.post('/api/proposals', payload);
                 // Başarı tostu interceptor tarafından gösterilecek
@@ -89,7 +102,7 @@ const ProposalForm = () => {
             link.href = url;
             
             // 4) İndirilecek dosyanın adını belirle
-            const fileName = `${customerName.replace(/\s/g, '_')}-teklifi.pdf`;
+            const fileName = `${customer.fullName.replace(/\s/g, '_')}-teklifi.pdf`;
             link.setAttribute('download', fileName);
             
             // 5) Linki DOM'a ekle ve programatik olarak tıkla
@@ -117,18 +130,33 @@ const ProposalForm = () => {
         <div className="space-y-8">
             <h2 className="text-2xl font-semibold text-gray-800 border-b pb-4">Yeni Teklif Detayları</h2>
 
-            {/* Müşteri Adı Alanı */}
-            <div>
-                <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-1">Müşteri Adı</label>
-                <input
-                    id="customerName"
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Proje veya Müşteri Adı"
-                    className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                />
+            {/* Müşteri Bilgileri (Opsiyonel) - Ad Soyad zorunlu */}
+            <div className="space-y-3 p-4 border rounded-lg bg-white">
+                <h3 className="text-xl font-semibold text-gray-800">Müşteri Bilgileri</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Ad Soyad (zorunlu)</label>
+                        <input type="text" value={customer.fullName} onChange={(e)=>setCustomer({ ...customer, fullName: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Ad Soyad" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Şirket Adı</label>
+                        <input type="text" value={customer.companyName} onChange={(e)=>setCustomer({ ...customer, companyName: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Müşteri Şirketi" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Telefon</label>
+                        <input type="text" value={customer.phone} onChange={(e)=>setCustomer({ ...customer, phone: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="+90 5xx xxx xx xx" />
+                    </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Adres</label>
+                        <input type="text" value={customer.address} onChange={(e)=>setCustomer({ ...customer, address: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Adres" />
+                    </div>
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">E-posta</label>
+                        <input type="email" value={customer.email} onChange={(e)=>setCustomer({ ...customer, email: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="mail@ornek.com" />
+                    </div>
+                </div>
             </div>
+           
 
             {/* Malzeme Ekleme Formu */}
             <div>
@@ -151,6 +179,10 @@ const ProposalForm = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Şirket bilgileri UI kaldırıldı; company payload'a merkezi olarak eklenecek */}
+
+            
 
             {/* Vergi/İskonto/Ek Maliyet */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -206,7 +238,7 @@ const ProposalForm = () => {
                 </div>
                 <button 
                     onClick={handleGeneratePdf} 
-                    disabled={loading || items.length === 0 || !customerName} 
+                    disabled={loading || items.length === 0 || !customer.fullName} 
                     className="w-full bg-indigo-600 text-white font-bold py-3 px-4 text-lg rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                     {loading ? (

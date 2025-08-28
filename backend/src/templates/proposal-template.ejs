@@ -1,114 +1,170 @@
 <!doctype html>
 <html lang="tr">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Teklif - <%= customerName %></title>
-    <style>
-        @page { size: A4; margin: 20mm 15mm 20mm 15mm; }
-        body{ font-family: Arial, Helvetica, sans-serif; color:#111827; }
-        .container{ max-width:900px; margin:0 auto; padding:0; }
-        .header{ display:flex; align-items:center; justify-content:space-between; border-bottom:2px solid #e5e7eb; padding-bottom:12px; }
-        .title{ color:#111827; font-size:28px; letter-spacing:0.5px; margin:0; }
-        .brand{ color:#4f46e5; font-weight:bold; }
-        .meta{ color:#374151; margin:2px 0; font-size:12px; }
-        .logo{ height:48px; }
-        .section{ margin-top:14px; }
-        table{ width:100%; border-collapse: collapse; margin-top:12px; }
-        thead th{ background:#111827; color:#ffffff; text-align:left; padding:10px; border:1px solid #e5e7eb; font-size:13px; }
-        tbody td{ font-size:13px; padding:8px 10px; border:1px solid #e5e7eb; }
-        tbody tr:nth-child(odd){ background:#fafafa; }
-        .right{ text-align:right; }
-        .totals{ margin-top:10px; width:100%; }
-        .totals td{ padding:8px 10px; font-size:13px; }
-        .totals .label{ text-align:right; color:#374151; }
-        .totals .value{ text-align:right; font-weight:bold; }
-        .grand{ background:#eef2ff; color:#1f2937; font-weight:bold; border-top:2px solid #4f46e5; }
-        .footer{ margin-top:18px; font-size:11px; color:#6b7280; border-top:1px solid #e5e7eb; padding-top:8px; }
-    </style>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Teklif - <%= customerName %></title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<style>
+		@page { size: A4; margin: 16mm 14mm 20mm 14mm; }
+		:root{
+			--emerald-900:#064e3b; /* başlık vurgu */
+			--emerald-800:#065f46;
+			--emerald-700:#047857; /* koyu vurgu */
+			--emerald-600:#059669; /* buton/şerit */
+			--emerald-100:#d1fae5; /* açık arka plan */
+			--gray-900:#0f172a;
+			--gray-700:#334155;
+			--gray-600:#475569;
+			--gray-500:#64748b;
+			--gray-200:#e5e7eb;
+			--card:#f8fafc;
+		}
+		body{ font-family:'Inter', Arial, Helvetica, sans-serif; color:var(--gray-900); }
+		.container{ max-width:900px; margin:0 auto; }
+		.accent-bar{ height:6px; width:100%; background:linear-gradient(90deg,var(--emerald-700),var(--emerald-600)); border-radius:2px; margin-bottom:14px; }
+		.report-title{ text-align:center; margin:6px 0 8px 0; }
+		.report-title__main{ margin:0; font-size:28px; font-weight:700; letter-spacing:0.2px; color:var(--emerald-800); }
+		.report-title__sub{ margin:2px 0 0 0; font-size:12px; color:var(--gray-600); }
+		.header{ display:flex; align-items:center; gap:16px; padding:8px 0 14px 0; border-bottom:1px solid var(--gray-200); }
+		.logo-wrap{ display:flex; align-items:center; gap:12px; min-height:56px; }
+		.logo{ height:56px; object-fit:contain; }
+		.header-right{ margin-left:auto; text-align:right; }
+		.title{ margin:0; font-size:26px; font-weight:700; letter-spacing:0.2px; color:var(--emerald-800); }
+		.subtitle{ margin:2px 0 0 0; font-size:12px; color:var(--gray-600); }
+		.meta{ color:var(--gray-700); margin:2px 0; font-size:12px; }
+		.section{ margin-top:14px; }
+		.card{ background:var(--card); border:1px solid var(--gray-200); border-radius:8px; padding:12px; }
+		.card h3{ margin:0 0 8px 0; font-size:13px; font-weight:600; color:var(--emerald-700); }
+		/* Daha kompakt müşteri bilgi şeridi */
+		.info-compact{ display:flex; flex-wrap:wrap; gap:8px 12px; }
+		.info-chip{ display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; border:1px solid var(--emerald-100); color:var(--emerald-900); border-radius:8px; padding:6px 10px; font-size:12px; }
+		.info-chip .label{ color:var(--gray-600); font-weight:500; }
+		.info-chip .value{ color:var(--gray-900); font-weight:600; }
+		table{ width:100%; border-collapse:separate; border-spacing:0; }
+		thead th{ background:var(--emerald-800); color:#ffffff; text-align:left; padding:10px; font-size:12px; font-weight:600; border-right:1px solid rgba(255,255,255,0.12); }
+		thead th:first-child{ border-top-left-radius:8px; }
+		thead th:last-child{ border-top-right-radius:8px; border-right:none; }
+		tbody td{ font-size:12px; padding:10px; border-bottom:1px solid var(--gray-200); }
+		tbody tr:nth-child(odd){ background:#ffffff; }
+		tbody tr:nth-child(even){ background:#f9fafb; }
+		.cell-right{ text-align:right; }
+		.totals{ width:100%; margin-top:10px; }
+		.totals td{ padding:8px 10px; font-size:12px; }
+		.totals .label{ text-align:right; color:var(--gray-600); }
+		.totals .value{ text-align:right; font-weight:700; }
+		.grand{ background:var(--emerald-100); color:var(--emerald-900); border-top:2px solid var(--emerald-700); }
+		.footer{ margin-top:16px; font-size:11px; color:var(--gray-500); border-top:1px solid var(--gray-200); padding-top:8px; }
+	</style>
     </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <h1 class="title">Güneş Enerjisi <span class="brand">Teklif</span></h1>
-                <div class="meta"><strong>Müşteri/Proje:</strong> <%= customerName %></div>
-                <div class="meta"><strong>Tarih:</strong> <%= new Date(createdAt).toLocaleDateString('tr-TR') %></div>
-                <% if (status) { %>
-                  <div class="meta"><strong>Durum:</strong> <%= status %></div>
-                <% } %>
-            </div>
-            <% if (company && company.logoUrl) { %>
-              <img class="logo" src="<%= company.logoUrl %>" alt="logo" />
-            <% } %>
-        </div>
+	<div class="container">
+		
+		<div class="report-title">
+			<h1 class="report-title__main">Fiyat Teklif Raporu</h1>
+			<p class="report-title__sub">Güneş Enerjisi Projesi</p>
+            
+		</div>
+        <div class="accent-bar"></div>
+		<% const c = (typeof customer !== 'undefined' && customer) ? customer : null; %>
+		<div class="header">
+			<div class="logo-wrap">
+				<% if (company && (company.logoDataUrl || company.logoUrl)) { %>
+					<img class="logo" src="<%= company.logoDataUrl || company.logoUrl %>" alt="logo" />
+				<% } %>
+			</div>
+			<div class="header-right">
+				<div class="meta"><strong>Müşteri/Proje:</strong> <%= customerName %></div>
+				<div class="meta"><strong>Tarih:</strong> <%= new Date(createdAt).toLocaleDateString('tr-TR') %></div>
+				<% if (status) { %>
+					<div class="meta"><strong>Durum:</strong> <%= status %></div>
+				<% } %>
+			</div>
+		</div>
 
-        <% if (company) { %>
-          <div class="meta"><strong>Şirket:</strong> <%= company.name || '' %> <%= company.taxNumber ? '(VKN: ' + company.taxNumber + ')' : '' %></div>
-          <div class="meta"><%= company.address || '' %></div>
-        <% } %>
+		<div class="section card">
+			<h3>Müşteri Bilgileri</h3>
+			<div class="info-compact">
+				<%
+					const fullName = (c && (c.fullName || ((c.firstName||'') + ' ' + (c.lastName||''))).trim()) || customerName || '';
+					const companyName = c && c.companyName ? c.companyName : '';
+					const phone = c && c.phone ? c.phone : '';
+					const address = c && c.address ? c.address : '';
+					const email = c && c.email ? c.email : '';
+				%>
+				<div class="info-chip"><span class="label">Ad Soyad:</span><span class="value"><%= fullName %></span></div>
+				<% if (companyName) { %><div class="info-chip"><span class="label">Şirket:</span><span class="value"><%= companyName %></span></div><% } %>
+				<% if (phone) { %><div class="info-chip"><span class="label">Telefon:</span><span class="value"><%= phone %></span></div><% } %>
+				<% if (address) { %><div class="info-chip"><span class="label">Adres:</span><span class="value"><%= address %></span></div><% } %>
+				<% if (email) { %><div class="info-chip"><span class="label">E-posta:</span><span class="value"><%= email %></span></div><% } %>
+			</div>
+		</div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Malzeme Adı</th>
-                    <th class="right">Miktar</th>
-                    <th class="right">Birim Fiyat</th>
-                    <th class="right">Tutar</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% items.forEach(function(item, index){ %>
-                  <tr>
-                      <td><%= index + 1 %></td>
-                      <td><%= item.name %></td>
-                      <td class="right"><%= item.quantity %></td>
-                      <td class="right"><%= formatCurrency(item.unitPrice) %></td>
-                      <td class="right"><%= formatCurrency(item.quantity * item.unitPrice) %></td>
-                  </tr>
-                <% }); %>
-            </tbody>
-        </table>
+		<div class="section">
+			<table>
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Malzeme Adı</th>
+						<th class="cell-right">Miktar</th>
+						<th class="cell-right">Birim Fiyat</th>
+						<th class="cell-right">Tutar</th>
+					</tr>
+				</thead>
+				<tbody>
+					<% items.forEach(function(item, index){ %>
+					<tr>
+						<td><%= index + 1 %></td>
+						<td><%= item.name %></td>
+						<td class="cell-right"><%= item.quantity %></td>
+						<td class="cell-right"><%= formatCurrency(item.unitPrice) %></td>
+						<td class="cell-right"><%= formatCurrency(item.quantity * item.unitPrice) %></td>
+					</tr>
+					<% }); %>
+				</tbody>
+			</table>
+		</div>
 
-        <table class="totals section">
-            <tbody>
-                <tr>
-                    <td class="label" style="width:70%">Ara Toplam</td>
-                    <td class="value"><%= formatCurrency(subtotal) %></td>
-                </tr>
-                <% if (discountRate && discountRate > 0) { %>
-                <tr>
-                    <td class="label">İskonto (<%= discountRate %>%)</td>
-                    <td class="value">-<%= formatCurrency(subtotal * (discountRate/100)) %></td>
-                </tr>
-                <% } %>
-                <% if (extraCosts && extraCosts > 0) { %>
-                <tr>
-                    <td class="label">Ek Maliyetler</td>
-                    <td class="value"><%= formatCurrency(extraCosts) %></td>
-                </tr>
-                <% } %>
-                <% if (vatRate && vatRate > 0) { %>
-                <tr>
-                    <td class="label">KDV (<%= vatRate %>%)</td>
-                    <td class="value"><%= formatCurrency(vatAmount) %></td>
-                </tr>
-                <% } %>
-                <tr class="grand">
-                    <td class="label">Genel Toplam</td>
-                    <td class="value"><%= formatCurrency(grandTotal) %></td>
-                </tr>
-            </tbody>
-        </table>
+		<table class="totals section card" style="border-collapse:separate; border-spacing:0;">
+			<tbody>
+				<tr>
+					<td class="label" style="width:70%">Ara Toplam</td>
+					<td class="value"><%= formatCurrency(subtotal) %></td>
+				</tr>
+				<% if (discountRate && discountRate > 0) { %>
+				<tr>
+					<td class="label">İskonto (<%= discountRate %>%)</td>
+					<td class="value">-<%= formatCurrency(subtotal * (discountRate/100)) %></td>
+				</tr>
+				<% } %>
+				<% if (extraCosts && extraCosts > 0) { %>
+				<tr>
+					<td class="label">Ek Maliyetler</td>
+					<td class="value"><%= formatCurrency(extraCosts) %></td>
+				</tr>
+				<% } %>
+				<% if (vatRate && vatRate > 0) { %>
+				<tr>
+					<td class="label">KDV (<%= vatRate %>%)</td>
+					<td class="value"><%= formatCurrency(vatAmount) %></td>
+				</tr>
+				<% } %>
+				<tr class="grand">
+					<td class="label">Genel Toplam</td>
+					<td class="value"><%= formatCurrency(grandTotal) %></td>
+				</tr>
+			</tbody>
+		</table>
 
-        <div class="footer">
-            <p>Not: Bu teklif bilgilendirme amaçlıdır. Fiyatlara KDV dahil değildir (aksine belirtilmedikçe).</p>
-            <% if (company) { %>
-              <p><%= company.name || '' %> • <%= company.address || '' %> • <%= company.taxNumber ? ('VKN: ' + company.taxNumber) : '' %></p>
-            <% } %>
-        </div>
-    </div>
+		<div class="footer">
+			<p>Not: Bu teklif bilgilendirme amaçlıdır. Fiyatlara KDV dahil değildir (aksine belirtilmedikçe).</p>
+			<% if (company) { %>
+				<p><%= company.name || '' %> • <%= company.address || '' %> • <%= company.taxNumber ? ('VKN: ' + company.taxNumber) : '' %></p>
+			<% } %>
+		</div>
+	</div>
 </body>
 </html>
 
