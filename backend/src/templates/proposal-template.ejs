@@ -32,6 +32,7 @@
 		.logo-wrap{ display:flex; align-items:center; gap:12px; min-height:56px; }
 		.logo{ height:56px; object-fit:contain; }
 		.header-right{ margin-left:auto; text-align:right; }
+		.header-right .issuer{ font-size:12px; color:var(--gray-700); margin-bottom:2px; }
 		.title{ margin:0; font-size:26px; font-weight:700; letter-spacing:0.2px; color:var(--emerald-800); }
 		.subtitle{ margin:2px 0 0 0; font-size:12px; color:var(--gray-600); }
 		.meta{ color:var(--gray-700); margin:2px 0; font-size:12px; }
@@ -65,7 +66,7 @@
 		<div class="report-title">
 			<h1 class="report-title__main">Fiyat Teklif Raporu</h1>
 			<p class="report-title__sub">Güneş Enerjisi Projesi</p>
-            
+			
 		</div>
         <div class="accent-bar"></div>
 		<% const c = (typeof customer !== 'undefined' && customer) ? customer : null; %>
@@ -76,7 +77,10 @@
 				<% } %>
 			</div>
 			<div class="header-right">
-				<div class="meta"><strong>Müşteri/Proje:</strong> <%= customerName %></div>
+				<% if (typeof issuer !== 'undefined' && issuer && (issuer.name || issuer.phone)) { %>
+					<div class="issuer"><strong>Teklifi Veren:</strong> <%= issuer.name || '-' %></div>
+					<div class="issuer"><strong>Telefon:</strong> <%= issuer.phone || '-' %></div>
+				<% } %>
 				<div class="meta"><strong>Tarih:</strong> <%= new Date(createdAt).toLocaleDateString('tr-TR') %></div>
 				<% if (status) { %>
 					<div class="meta"><strong>Durum:</strong> <%= status %></div>
@@ -151,15 +155,15 @@
 					<td class="value"><%= formatCurrency(vatAmount) %></td>
 				</tr>
 				<% } %>
-				<tr class="grand">
-					<td class="label">Genel Toplam</td>
-					<td class="value"><%= formatCurrency(grandTotal) %></td>
+				<tr class="grand" style="font-size:14px;">
+					<td class="label" style="font-weight:700; color:var(--emerald-900)">GENEL TOPLAM</td>
+					<td class="value" style="font-size:16px; color:var(--emerald-900)"><%= formatCurrency(grandTotal) %></td>
 				</tr>
 			</tbody>
 		</table>
 
 		<div class="footer">
-			<p>Not: Bu teklif bilgilendirme amaçlıdır. Fiyatlara KDV dahil değildir (aksine belirtilmedikçe).</p>
+			<p>Not: Bu teklif bilgilendirme amaçlıdır. Yukarıdaki fiyatlandırmanın, ürünlerin tahmini birim fiyatları baz alınarak hesaplandığını lütfen göz önünde bulundurunuz.</p>
 			<% if (company) { %>
 				<p><%= company.name || '' %> • <%= company.address || '' %> • <%= company.taxNumber ? ('VKN: ' + company.taxNumber) : '' %></p>
 			<% } %>
