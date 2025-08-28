@@ -12,7 +12,7 @@ async function generateProposalPdf(req, res) {
 	try {
 		const { customerName, items, vatRate = 0, discountRate = 0, extraCosts = 0, status, company } = req.body || {};
 		if (!customerName || !Array.isArray(items) || items.length === 0) {
-			return res.status(400).json({ message: 'Geçersiz veri. Müşteri adı ve en az bir malzeme gereklidir.' });
+			return res.error('Geçersiz veri. Müşteri adı ve en az bir malzeme gereklidir.', 400);
 		}
 
 		const subtotal = items.reduce((sum, it) => sum + Number(it.quantity) * Number(it.unitPrice), 0);
@@ -55,7 +55,7 @@ async function generateProposalPdf(req, res) {
 		return res.status(200).send(pdfBuffer);
 	} catch (error) {
 		console.error('PDF oluşturma hatası:', error);
-		return res.status(500).json({ message: 'Sunucu hatası. PDF oluşturulamadı.' });
+		return res.error('Sunucu hatası. PDF oluşturulamadı.', 500);
 	}
 }
 
