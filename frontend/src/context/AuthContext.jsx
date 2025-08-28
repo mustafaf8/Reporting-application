@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }) => {
         setUser(data.data?.user || data.user);
       } catch (err) {
         // Geçersiz token ise temizle
+        
         setToken(null);
         setUser(null);
       } finally {
