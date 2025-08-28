@@ -52,7 +52,14 @@ router.get('/', auth, async (req, res) => {
 	const filter = {};
 	if (q) filter.customerName = { $regex: q, $options: 'i' };
 	if (status) filter.status = status;
-	if (req.user?.id) filter.owner = req.user.id;
+	// Mevcut kullanıcıya ait olanlar VEYA legacy (owner alanı olmayan) kayıtlar
+	if (req.user?.id) {
+		filter.$or = [
+			{ owner: req.user.id },
+			{ owner: { $exists: false } },
+			{ owner: null }
+		];
+	}
 	const skip = (Number(page) - 1) * Number(limit);
 	const [items, total] = await Promise.all([
 		Proposal.find(filter).skip(skip).limit(Number(limit)).sort({ createdAt: -1 }),

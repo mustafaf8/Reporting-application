@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 // Bu bileşenin tek sorumluluğu, bir teklif formu göstermek,
 // kullanıcı girdilerini yönetmek ve PDF oluşturma işlemini tetiklemektir.
@@ -39,8 +40,9 @@ const ProposalForm = () => {
             setItems([...items, currentItem]);
             // Malzeme eklendikten sonra formu temizle
             setCurrentItem({ name: '', quantity: 1, unitPrice: 0 });
+            toast.success('Malzeme başarıyla eklendi!');
         } else {
-            alert('Lütfen tüm malzeme alanlarını doğru bir şekilde doldurun.');
+            toast.error('Lütfen tüm malzeme alanlarını doğru bir şekilde doldurun.');
         }
     };
 
@@ -48,50 +50,62 @@ const ProposalForm = () => {
     const handleRemoveItem = (indexToRemove) => {
         // filter metodu ile kaldırılmak istenen index dışındaki tüm elemanlardan yeni bir dizi oluştur
         setItems(items.filter((_, index) => index !== indexToRemove));
+        toast.success('Malzeme kaldırıldı');
     };
 
     // Backend'e istek atıp PDF'i oluşturan ve indiren ana fonksiyon
     const handleGeneratePdf = async () => {
         // Müşteri adı veya malzeme listesi boşsa işlemi başlatma
         if (!customerName || items.length === 0) {
-            alert('PDF oluşturmak için lütfen müşteri adı girin ve en az bir malzeme ekleyin.');
+            toast.error('PDF oluşturmak için lütfen müşteri adı girin ve en az bir malzeme ekleyin.');
             return;
         }
 
         setLoading(true); // Yüklenme durumunu başlat
 
         try {
-            // Backend'deki API endpoint'ine POST isteği gönder
+            // 0) Önce teklifi DB'ye kaydet (giriş yapılmış olmalı)
+            const payload = { customerName, items, vatRate, discountRate, extraCosts };
+            try {
+                await api.post('/api/proposals', payload);
+                // Başarı tostu interceptor tarafından gösterilecek
+            } catch (saveErr) {
+                // Kayıt edilemese bile PDF'e devam edebiliriz; kullanıcıya bilgi ver
+                toast.error(saveErr.response?.data?.message || 'Teklif kaydedilemedi, PDF oluşturulacak.');
+            }
+
+            // 1) PDF üretimi
             const response = await api.post(
                 '/api/generate-pdf',
-                { customerName, items, vatRate, discountRate, extraCosts },
+                payload,
                 { responseType: 'blob' }
             );
 
-            // 1. Gelen blob verisinden geçici bir URL oluştur
+            // 2) Gelen blob verisinden geçici bir URL oluştur
             const url = window.URL.createObjectURL(new Blob([response.data]));
             
-            // 2. Gizli bir link ('a' tagı) oluştur
+            // 3) Gizli bir link ('a' tagı) oluştur
             const link = document.createElement('a');
             link.href = url;
             
-            // 3. İndirilecek dosyanın adını belirle
+            // 4) İndirilecek dosyanın adını belirle
             const fileName = `${customerName.replace(/\s/g, '_')}-teklifi.pdf`;
             link.setAttribute('download', fileName);
             
-            // 4. Linki DOM'a ekle ve programatik olarak tıkla
+            // 5) Linki DOM'a ekle ve programatik olarak tıkla
             document.body.appendChild(link);
             link.click();
             
-            // 5. İşlem bittikten sonra oluşturulan linki ve URL'yi temizle (hafıza sızıntısını önlemek için)
+            // 6) Temizlik
             link.parentNode.removeChild(link);
             window.URL.revokeObjectURL(url);
 
+            toast.success('PDF başarıyla oluşturuldu ve indirildi!');
+
         } catch (error) {
             console.error('PDF oluşturma ve indirme sırasında hata:', error);
-            alert('PDF oluşturulurken sunucuda bir hata oluştu.');
+            toast.error('PDF oluşturulurken sunucu hatası oluştu.');
         } finally {
-            // İşlem başarılı da olsa, başarısız da olsa yüklenme durumunu bitir
             setLoading(false);
         }
     };
