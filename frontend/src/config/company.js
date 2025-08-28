@@ -5,10 +5,9 @@
 const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
 const companyConfig = {
-  name: 'RMR Enerji A.Ş.',
-  taxNumber: '1234567890',
-  address: 'Örnek Mah. Enerji Cad. No:10, İstanbul',
-  // Örn: http://localhost:5173/logo.png (dev) veya prod origin + /logo.png
+  name: 'RMR Enerji',
+  taxNumber: '+90 (532) 471 28 24',
+  address: 'Fevziçakmak, 10777 Sk. No:1AC, 42250 Karatay/Konya',
   logoUrl: origin ? `${origin}/logo.png` : '/logo.png'
 };
 

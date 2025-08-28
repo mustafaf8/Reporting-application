@@ -46,7 +46,7 @@ const ProposalForm = () => {
 
     // API isteği sırasında yüklenme durumunu yöneten state (butonun deaktif olması için)
     const [loading, setLoading] = useState(false);
-   
+
 
     // --- FONKSİYONLAR ---
 
@@ -102,19 +102,19 @@ const ProposalForm = () => {
 
             // 2) Gelen blob verisinden geçici bir URL oluştur
             const url = window.URL.createObjectURL(new Blob([response.data]));
-            
+
             // 3) Gizli bir link ('a' tagı) oluştur
             const link = document.createElement('a');
             link.href = url;
-            
+
             // 4) İndirilecek dosyanın adını belirle
             const fileName = `${customer.fullName.replace(/\s/g, '_')}-teklifi.pdf`;
             link.setAttribute('download', fileName);
-            
+
             // 5) Linki DOM'a ekle ve programatik olarak tıkla
             document.body.appendChild(link);
             link.click();
-            
+
             // 6) Temizlik
             link.parentNode.removeChild(link);
             window.URL.revokeObjectURL(url);
@@ -142,47 +142,24 @@ const ProposalForm = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">Ad Soyad (zorunlu)</label>
-                        <input type="text" value={customer.fullName} onChange={(e)=>setCustomer({ ...customer, fullName: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Ad Soyad" />
+                        <input type="text" value={customer.fullName} onChange={(e) => setCustomer({ ...customer, fullName: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Ad Soyad" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Şirket Adı</label>
-                        <input type="text" value={customer.companyName} onChange={(e)=>setCustomer({ ...customer, companyName: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Müşteri Şirketi" />
+                        <input type="text" value={customer.companyName} onChange={(e) => setCustomer({ ...customer, companyName: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Müşteri Şirketi" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Telefon</label>
-                        <input type="text" value={customer.phone} onChange={(e)=>setCustomer({ ...customer, phone: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="+90 5xx xxx xx xx" />
+                        <input type="text" value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="+90 5xx xxx xx xx" />
                     </div>
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">Adres</label>
-                        <input type="text" value={customer.address} onChange={(e)=>setCustomer({ ...customer, address: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Adres" />
+                        <input type="text" value={customer.address} onChange={(e) => setCustomer({ ...customer, address: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Adres" />
                     </div>
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700">E-posta</label>
-                        <input type="email" value={customer.email} onChange={(e)=>setCustomer({ ...customer, email: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="mail@ornek.com" />
+                        <input type="email" value={customer.email} onChange={(e) => setCustomer({ ...customer, email: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="mail@ornek.com" />
                     </div>
-                </div>
-            </div>
-           
-
-            {/* Malzeme Ekleme Formu */}
-            <div>
-                <h3 className="text-xl font-semibold mb-2 text-gray-700">Malzeme Listesi</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 border rounded-lg bg-gray-50">
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700">Malzeme Adı</label>
-                        <input type="text" value={currentItem.name} onChange={(e) => setCurrentItem({ ...currentItem, name: e.target.value })} placeholder="450W Monokristal Panel" className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Miktar</label>
-                        <input type="number" min="1" value={currentItem.quantity} onChange={(e) => setCurrentItem({ ...currentItem, quantity: parseInt(e.target.value) || 1 })} className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Birim Fiyat (TL)</label>
-                        <input type="number" min="0" step="0.01" value={currentItem.unitPrice} onChange={(e) => setCurrentItem({ ...currentItem, unitPrice: parseFloat(e.target.value) || 0 })} placeholder="Örn: 2500" className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"/>
-                    </div>
-                    <button onClick={handleAddItem} className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Ekle
-                    </button>
                 </div>
             </div>
 
@@ -192,35 +169,53 @@ const ProposalForm = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Ad Soyad (zorunlu)</label>
-                        <input type="text" value={issuer.name} onChange={(e)=>setIssuer({ ...issuer, name: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Örn: Mustafa Nahsan" />
+                        <input type="text" value={issuer.name} onChange={(e) => setIssuer({ ...issuer, name: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="Örn: Mustafa Nahsan" />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Telefon (zorunlu)</label>
-                        <input type="text" value={issuer.phone} onChange={(e)=>setIssuer({ ...issuer, phone: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="+90 5xx xxx xx xx" />
+                        <input type="text" value={issuer.phone} onChange={(e) => setIssuer({ ...issuer, phone: e.target.value })} className="mt-1 w-full border border-gray-300 rounded-md p-2" placeholder="+90 5xx xxx xx xx" />
                     </div>
                 </div>
             </div>
 
-            {/* Şirket bilgileri UI kaldırıldı; company payload'a merkezi olarak eklenecek */}
-
-            
+            {/* Malzeme Ekleme Formu */}
+            <div>
+                <h3 className="text-xl font-semibold mb-2 text-gray-700">Malzeme Listesi</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end p-4 border rounded-lg bg-gray-50">
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700">Malzeme Adı</label>
+                        <input type="text" value={currentItem.name} onChange={(e) => setCurrentItem({ ...currentItem, name: e.target.value })} placeholder="450W Monokristal Panel" className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Miktar</label>
+                        <input type="number" min="1" value={currentItem.quantity} onChange={(e) => setCurrentItem({ ...currentItem, quantity: parseInt(e.target.value) || 1 })} className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Birim Fiyat (TL)</label>
+                        <input type="number" min="0" step="0.01" value={currentItem.unitPrice} onChange={(e) => setCurrentItem({ ...currentItem, unitPrice: parseFloat(e.target.value) || 0 })} placeholder="Örn: 2500" className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                    </div>
+                    <button onClick={handleAddItem} className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Ekle
+                    </button>
+                </div>
+            </div>
 
             {/* Vergi/İskonto/Ek Maliyet */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">KDV Oranı (%)</label>
-                    <input type="number" min="0" step="0.01" value={vatRate} onChange={(e)=>setVatRate(parseFloat(e.target.value)||0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
+                    <input type="number" min="0" step="0.01" value={vatRate} onChange={(e) => setVatRate(parseFloat(e.target.value) || 0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">İskonto Oranı (%)</label>
-                    <input type="number" min="0" step="0.01" value={discountRate} onChange={(e)=>setDiscountRate(parseFloat(e.target.value)||0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
+                    <input type="number" min="0" step="0.01" value={discountRate} onChange={(e) => setDiscountRate(parseFloat(e.target.value) || 0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Ek Maliyetler (TL)</label>
-                    <input type="number" min="0" step="0.01" value={extraCosts} onChange={(e)=>setExtraCosts(parseFloat(e.target.value)||0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
+                    <input type="number" min="0" step="0.01" value={extraCosts} onChange={(e) => setExtraCosts(parseFloat(e.target.value) || 0)} className="mt-1 w-full border border-gray-300 rounded-md p-2" />
                 </div>
             </div>
-            
+
             {/* Eklenen Malzemeler Listesi */}
             <div className="space-y-2">
                 {items.length > 0 ? (
@@ -249,17 +244,17 @@ const ProposalForm = () => {
                     <span className="text-gray-600 mr-4">Genel Toplam (yaklaşık):</span>
                     <span className="text-indigo-600">
                         {(() => {
-                            const subtotal = items.reduce((t, it)=> t + it.quantity*it.unitPrice, 0);
-                            const discounted = subtotal * (1 - (discountRate/100));
+                            const subtotal = items.reduce((t, it) => t + it.quantity * it.unitPrice, 0);
+                            const discounted = subtotal * (1 - (discountRate / 100));
                             const withExtras = discounted + extraCosts;
-                            const withVat = withExtras * (1 + (vatRate/100));
+                            const withVat = withExtras * (1 + (vatRate / 100));
                             return withVat.toFixed(2);
                         })()} TL
                     </span>
                 </div>
-                <button 
-                    onClick={handleGeneratePdf} 
-                    disabled={loading || items.length === 0 || !customer.fullName} 
+                <button
+                    onClick={handleGeneratePdf}
+                    disabled={loading || items.length === 0 || !customer.fullName}
                     className="w-full bg-indigo-600 text-white font-bold py-3 px-4 text-lg rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                     {loading ? (
