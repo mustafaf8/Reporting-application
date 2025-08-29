@@ -17,14 +17,10 @@
 
 		:root {
 			--emerald-900: #064e3b;
-			/* başlık vurgu */
 			--emerald-800: #065f46;
 			--emerald-700: #047857;
-			/* koyu vurgu */
 			--emerald-600: #059669;
-			/* buton/şerit */
 			--emerald-100: #d1fae5;
-			/* açık arka plan */
 			--gray-900: #0f172a;
 			--gray-700: #334155;
 			--gray-600: #475569;
@@ -44,15 +40,18 @@
 		}
 
 		.mustafa {
-			border-bottom: 1px solid #06a779;
+			padding-bottom:6px;
+		}
+		.mustafa {
+			font-size:12px;
 		}
 
 		.accent-bar {
-			height: 6px;
+			height: 4px;
 			width: 100%;
 			background: linear-gradient(90deg, var(--emerald-700), var(--emerald-600));
-			border-radius: 2px;
-			margin-bottom: 14px;
+			border-radius: 5px;
+			margin-bottom: 8px;
 		}
 
 		.report-title {
@@ -62,8 +61,8 @@
 
 		.report-title__main {
 			margin: 0;
-			font-size: 28px;
-			font-weight: 700;
+			font-size: 16px;
+			font-weight: 600;
 			letter-spacing: 0.2px;
 			color: var(--emerald-800);
 		}
@@ -105,7 +104,7 @@
 		}
 
 		.header-right .issuer-line strong {
-			color: var(--gray-600);
+			color: var(--gray-500);
 		}
 
 		.title {
@@ -256,24 +255,37 @@
 		.company-name{ font-size:13px; font-weight:700; color:var(--emerald-800); margin:0 0 2px 0; }
 		.company-line{ font-size:11px; color:var(--gray-700); margin:0; }
 		.page-break{ page-break-before: always; }
-		.about-hero{ position:relative; width:100%; height:210px; border-radius:10px; overflow:hidden; border:1px solid var(--gray-200); background:#f1f5f9; }
+		.about-hero{ position:relative; width:100%; height:210px; border-radius:12px; overflow:hidden; border:1px solid var(--gray-200); background:#f1f5f9; }
 		.about-hero img{ width:100%; height:100%; object-fit:cover; display:block; }
-		.about-hero .overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.35)); }
-		.about-hero .text{ position:absolute; left:16px; bottom:12px; color:#fff; }
-		.about-hero .text h2{ margin:0; font-size:20px; font-weight:700; }
-		.about-hero .text p{ margin:2px 0 0 0; font-size:12px; opacity:0.9; }
-		.about-section{ display:grid; grid-template-columns:1.2fr 0.8fr; gap:16px; margin-top:12px; }
-		.about-text{ font-size:12px; color:var(--gray-700); line-height:1.65; }
-		.about-card{ background:#fff; border:1px solid var(--gray-200); border-radius:8px; padding:10px; }
-		.about-card h4{ margin:0 0 6px 0; font-size:13px; color:var(--emerald-800); }
-		.about-list{ margin:0 0 0 16px; padding:0; }
-		.about-list li{ margin:2px 0; }
+		.about-hero .overlay{ position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.55)); }
+		.about-hero .text{ position:absolute; left:16px; bottom:14px; right:16px; color:#fff; }
+		.about-hero .text h2{ margin:0; font-size:22px; font-weight:700; letter-spacing:0.2px; }
+		.about-hero .text p{ margin:4px 0 0 0; font-size:12px; opacity:0.95; }
+		.about-section{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px; align-items:start; }
+		.about-text{ font-size:12px; color:var(--gray-700); line-height:1.7; }
+		.about-card{ background:#ffffff; border:1px solid var(--gray-200); border-radius:12px; padding:12px; }
+		.about-card h4{ margin:0 0 8px 0; font-size:13px; color:var(--emerald-800); letter-spacing:0.2px; }
+		.about-summary{ background:#ffffff; border:1px solid var(--gray-200); border-radius:12px; padding:12px; }
+		.about-summary h4{ margin:0 0 8px 0; font-size:13px; color:var(--emerald-800); letter-spacing:0.2px; }
+		.about-list{ list-style:none; margin:0; padding:0; display:grid; grid-template-columns:1fr; gap:8px; }
+		.about-list--grid{ grid-template-columns:1fr 1fr; gap:10px; }
+		.about-list li{ background:#f8fafc; border:1px solid var(--gray-200); border-left:3px solid var(--emerald-600); border-radius:10px; padding:10px; }
+		.about-list li strong{ display:block; margin:0 0 4px 0; font-size:12px; color:var(--emerald-800); }
 		.about-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px; }
-		.stat{ background:#ecfdf5; border:1px solid var(--emerald-100); color:var(--emerald-900); border-radius:8px; padding:10px; text-align:center; }
-		.stat .num{ font-size:16px; font-weight:800; }
-		.stat .lbl{ font-size:11px; }
+		.stat{ background:#ffffff; border:1px solid var(--gray-200); color:var(--emerald-900); border-radius:12px; padding:12px; text-align:center; }
+		.stat .num{ font-size:18px; font-weight:800; letter-spacing:0.3px; color:var(--emerald-800); }
+		.stat .lbl{ font-size:11px; color:var(--gray-700); margin-top:2px; }
 		.about-secondary{ margin-top:12px; }
-		.about-secondary img{ width:100%; height:180px; object-fit:cover; border-radius:8px; border:1px solid var(--gray-200); }
+		.about-secondary{ position:relative; }
+		.about-secondary img{ width:100%; height:180px; object-fit:cover; border-radius:12px; border:1px solid var(--gray-200); display:block; }
+		.about-secondary .overlay{ position:absolute; inset:0; border-radius:12px; background:linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.6)); }
+		.about-secondary .text{ position:absolute; left:14px; bottom:12px; right:14px; color:#fff; }
+		.about-secondary .text p{ margin:0; font-size:12px; line-height:1.55; letter-spacing:0.2px; }
+		/* Şirket bilgileri chip stili */
+		.company-info{ display:flex; flex-wrap:wrap; gap:8px 10px; }
+		.company-chip{ display:inline-flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid var(--gray-200); border-radius:10px; padding:8px 10px; font-size:11px; }
+		.company-chip .label{ color:var(--gray-600); font-weight:500; }
+		.company-chip .value{ color:var(--gray-900); font-weight:600; }
 	</style>
 </head>
 
@@ -293,13 +305,13 @@
 						<% } %>
 				</div>
 				<div class="header-right">
-					<div class="issuer-line mustafa"><strong>Teklifi veren:</strong>
+					<div class="issuer-line mustafa"><span class="mustafaa">Teklif veren:</span>
 						<%= (typeof issuer !=='undefined' && issuer && issuer.name) ? issuer.name : '-' %>
 					</div>
-					<div class="issuer-line mustafa"><strong>Telefon:</strong>
+					<div class="issuer-line mustafa"><span class="mustafaa">Telefon:</span>
 						<%= (typeof issuer !=='undefined' && issuer && issuer.phone) ? issuer.phone : '-' %>
 					</div>
-					<div class="issuer-line mustafa"><strong>Tarih:</strong>
+					<div class="issuer-line mustafa"><span class="mustafaa">Tarih:</span>
 						<%= new Date(createdAt).toLocaleDateString('tr-TR') %>
 					</div>
 					<% if (status) { %>
@@ -426,18 +438,6 @@
 					geçerlilik tarihi: <strong>
 						<%= new Date(createdAt + (10*24*60*60*1000)).toLocaleDateString('tr-TR') %>
 					</strong>.</p>
-				<% if (company) { %>
-					<div class="company-card">
-						<p class="company-name">
-							<%= company.name || 'Şirket Adı' %>
-						</p>
-						<p class="company-line">
-							<%= company.address || '' %>
-						</p>
-						<p class="company-line">
-							<%= company.taxNumber ? ('VKN: ' + company.taxNumber) : '' %></p>
-					</div>
-				<% } %>
 			</div>
 	</div>
 
@@ -455,34 +455,47 @@
 		</div>
 
 		<div class="about-section">
-			<p class="about-text"><%= (aboutRmr && aboutRmr.description) || '' %></p>
+			<div class="about-summary">
+				<h4>Kısa Özet</h4>
+				<p class="about-text"><%= (aboutRmr && aboutRmr.description) || '' %></p>
+			</div>
 			<div class="about-card">
-				<h4>Öne Çıkan Başlıklar</h4>
-				<ul class="about-list">
-					<% if (aboutRmr && aboutRmr.sections && aboutRmr.sections.length) { %>
-						<% aboutRmr.sections.forEach(function(s){ %>
-							<li><strong><%= s.title %>:</strong> <%= s.content %></li>
-						<% }); %>
+				<h4>RMR Enerji Şirket Bilgileri</h4>
+				<div class="company-info">
+					<% if (company && company.address) { %>
+						<div class="company-chip"><span class="label">Adres:</span><span class="value"><%= company.address %></span></div>
 					<% } %>
-				</ul>
+					<% if (company && company.taxNumber) { %>
+						<div class="company-chip"><span class="label">VKN:</span><span class="value"><%= company.taxNumber %></span></div>
+					<% } %>
+				
+				
+					<div class="company-chip"><span class="label">Hizmet Alanı:</span><span class="value">Türkiye genelinde</span></div>
+					<div class="company-chip"><span class="label">Uzmanlık:</span><span class="value">GES projeleri, EPC, bakım</span></div>
+					<div class="company-chip"><span class="label">Web:</span><span class="value">rmrenerji.com</span></div>
+					<div class="company-chip"><span class="label">İletişim:</span><span class="value">info@rmrenerji.com</span></div>
+				</div>
 			</div>
 		</div>
 
 		<div class="about-stats">
-			<div class="stat"><div class="num">50+</div><div class="lbl">Tamamlanan Proje</div></div>
+			<div class="stat"><div class="num">300+</div><div class="lbl">Tamamlanan Proje</div></div>
 			<div class="stat"><div class="num">14+</div><div class="lbl">Yıl Deneyim</div></div>
-			<div class="stat"><div class="num">%99</div><div class="lbl">Müşteri Memnuniyeti</div></div>
+			<div class="stat"><div class="num">%97</div><div class="lbl">Müşteri Memnuniyeti</div></div>
 		</div>
 
 		<div class="about-secondary">
 			<% if (aboutRmr && aboutRmr.images && aboutRmr.images[1]) { %>
 				<img src="<%= aboutRmr.images[1] %>" alt="RMR Görsel" />
+				<div class="overlay"></div>
+				<% if (aboutRmr && aboutRmr.closingStatement) { %>
+					<div class="text">
+						<p><%= aboutRmr.closingStatement %></p>
+					</div>
+				<% } %>
 			<% } %>
 		</div>
 
-		<% if (aboutRmr && aboutRmr.closingStatement) { %>
-			<p class="about-text" style="margin-top:12px; font-weight:600; color:var(--emerald-900)"><%= aboutRmr.closingStatement %></p>
-		<% } %>
 	</div>
 
 </body>
