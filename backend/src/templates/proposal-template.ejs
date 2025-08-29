@@ -42,8 +42,11 @@
 		.mustafa {
 			padding-bottom:6px;
 		}
-		.mustafa {
+		.mustafaa {
 			font-size:12px;
+		}
+		.mustafaaa {
+			padding-bottom: 20px;
 		}
 
 		.accent-bar {
@@ -262,7 +265,7 @@
 		.about-hero .text h2{ margin:0; font-size:22px; font-weight:700; letter-spacing:0.2px; }
 		.about-hero .text p{ margin:4px 0 0 0; font-size:12px; opacity:0.95; }
 		.about-section{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px; align-items:start; }
-		.about-text{ font-size:12px; color:var(--gray-700); line-height:1.7; }
+		.about-text{ font-size:12px; color:var(--gray-700); line-height:1.7; padding-bottom:5px;}
 		.about-card{ background:#ffffff; border:1px solid var(--gray-200); border-radius:12px; padding:12px; }
 		.about-card h4{ margin:0 0 8px 0; font-size:13px; color:var(--emerald-800); letter-spacing:0.2px; }
 		.about-summary{ background:#ffffff; border:1px solid var(--gray-200); border-radius:12px; padding:12px; }
@@ -276,11 +279,10 @@
 		.stat .num{ font-size:18px; font-weight:800; letter-spacing:0.3px; color:var(--emerald-800); }
 		.stat .lbl{ font-size:11px; color:var(--gray-700); margin-top:2px; }
 		.about-secondary{ margin-top:12px; }
-		.about-secondary{ position:relative; }
-		.about-secondary img{ width:100%; height:180px; object-fit:cover; border-radius:12px; border:1px solid var(--gray-200); display:block; }
-		.about-secondary .overlay{ position:absolute; inset:0; border-radius:12px; background:linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.6)); }
-		.about-secondary .text{ position:absolute; left:14px; bottom:12px; right:14px; color:#fff; }
-		.about-secondary .text p{ margin:0; font-size:12px; line-height:1.55; letter-spacing:0.2px; }
+		.about-secondary .gallery{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+		.about-secondary .tile{ position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--gray-200); background:#f1f5f9; height:140px; }
+		.about-secondary .tile img{ width:100%; height:100%; object-fit:cover; display:block; }
+		.about-secondary .section-title{ margin:6px 0 10px 0; font-size:13px; font-weight:700; color:var(--emerald-800); text-align:center; letter-spacing:0.2px; }
 		/* Şirket bilgileri chip stili */
 		.company-info{ display:flex; flex-wrap:wrap; gap:8px 10px; }
 		.company-chip{ display:inline-flex; align-items:center; gap:6px; background:#f8fafc; border:1px solid var(--gray-200); border-radius:10px; padding:8px 10px; font-size:11px; }
@@ -442,8 +444,8 @@
 	</div>
 
 	<!-- RMR Hakkında - Statik Son Sayfa (yenilendi) -->
-	<div class="container page-break">
-		<div class="about-hero">
+	<div class="container page-break ">
+		<div class="about-hero ">
 			<% if (aboutRmr && aboutRmr.images && aboutRmr.images[0]) { %>
 				<img src="<%= aboutRmr.images[0] %>" alt="RMR Hero" />
 			<% } %>
@@ -454,46 +456,41 @@
 			</div>
 		</div>
 
-		<div class="about-section">
+		<div class="about-section mustafaaa">
 			<div class="about-summary">
-				<h4>Kısa Özet</h4>
+				<h4>RMR Enerji Hakkında Kısa Özet</h4>
 				<p class="about-text"><%= (aboutRmr && aboutRmr.description) || '' %></p>
 			</div>
 			<div class="about-card">
 				<h4>RMR Enerji Şirket Bilgileri</h4>
 				<div class="company-info">
-					<% if (company && company.address) { %>
-						<div class="company-chip"><span class="label">Adres:</span><span class="value"><%= company.address %></span></div>
-					<% } %>
-					<% if (company && company.taxNumber) { %>
-						<div class="company-chip"><span class="label">VKN:</span><span class="value"><%= company.taxNumber %></span></div>
-					<% } %>
-				
-				
-					<div class="company-chip"><span class="label">Hizmet Alanı:</span><span class="value">Türkiye genelinde</span></div>
+					<div class="company-chip"><span class="label">Adres:</span><span class="value">Fevziçakmak, 10777 Sk. No:1AC, 42250 Karatay/Konya</span></div>
 					<div class="company-chip"><span class="label">Uzmanlık:</span><span class="value">GES projeleri, EPC, bakım</span></div>
+					<div class="company-chip"><span class="label">Hizmet Alanı:</span><span class="value">Türkiye genelinde</span></div>
+					<div class="company-chip"><span class="label">VKN:</span><span class="value">00000000000</span></div>
 					<div class="company-chip"><span class="label">Web:</span><span class="value">rmrenerji.com</span></div>
-					<div class="company-chip"><span class="label">İletişim:</span><span class="value">info@rmrenerji.com</span></div>
+					<div class="company-chip"><span class="label">İletişim:</span><span class="value">rmrenerji@rmrenerji.com</span></div>
 				</div>
 			</div>
 		</div>
 
-		<div class="about-stats">
+		<div class="about-stats mustafaaa">
 			<div class="stat"><div class="num">300+</div><div class="lbl">Tamamlanan Proje</div></div>
 			<div class="stat"><div class="num">14+</div><div class="lbl">Yıl Deneyim</div></div>
 			<div class="stat"><div class="num">%97</div><div class="lbl">Müşteri Memnuniyeti</div></div>
 		</div>
 
 		<div class="about-secondary">
-			<% if (aboutRmr && aboutRmr.images && aboutRmr.images[1]) { %>
-				<img src="<%= aboutRmr.images[1] %>" alt="RMR Görsel" />
-				<div class="overlay"></div>
-				<% if (aboutRmr && aboutRmr.closingStatement) { %>
-					<div class="text">
-						<p><%= aboutRmr.closingStatement %></p>
-					</div>
+			<h4 class="section-title ">RMR Enerji Olarak Yapılan Çalışmalar</h4>
+			<div class="gallery">
+				<% if (aboutRmr && aboutRmr.gallery && aboutRmr.gallery.length) { %>
+					<% aboutRmr.gallery.slice(0,4).forEach(function(g){ %>
+						<div class="tile">
+							<img src="<%= g %>" alt="RMR Galeri" />
+						</div>
+					<% }); %>
 				<% } %>
-			<% } %>
+			</div>
 		</div>
 
 	</div>

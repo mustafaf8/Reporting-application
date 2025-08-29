@@ -37,51 +37,22 @@ async function generateProposalPdf(req, res) {
 		const grandTotal = Math.round((withExtras + vatAmount) * 100) / 100;
 
 		const aboutRmr = {
-			// Görseller için fonksiyonlarınızı burada çağırabilirsiniz.
 			images: [
-				// Üstteki hero görseli
 				readImageAsDataUrl('pdfassetone.jpg'),
-				// Alttaki ikincil görsel
 				readImageAsDataUrl('pdfassettwo.jpg')
+			].filter(Boolean),
+
+			// Alt galeri için 4 görsel (templates/1.jpg .. 4.jpg)
+			gallery: [
+				readImageAsDataUrl('1.jpg'),
+				readImageAsDataUrl('2.jpg'),
+				readImageAsDataUrl('3.jpg'),
+				readImageAsDataUrl('4.jpg')
 			].filter(Boolean),
 
 			title: 'RMR Enerji: Geleceği Güneşle Şekillendiriyoruz',
 
-			description: `Güneş enerjisi sektöründeki 14 yılı aşkın derin tecrübemizle, RMR Enerji olarak misyonumuz, sürdürülebilir ve yenilikçi enerji çözümleri sunarak dünyamızı daha temiz, yaşanabilir ve verimli bir geleceğe taşımaktır. Güneşin sonsuz gücünden ilham alarak, hem çevre dostu hem de ekonomik açıdan verimli enerji alternatifleriyle geleceği bugünden şekillendiriyoruz. Müşterilerimize sadece bir ürün veya hizmet değil, aynı zamanda daha parlak bir gelecek vaadi sunuyoruz.`,
-
-			// Sayfayı doldurmak için birden fazla bölüm ekleyebiliriz.
-			sections: [
-				{
-					title: 'Vizyonumuz ve Değerlerimiz',
-					content: 'Vizyonumuz, Türkiye’de ve bölgede yenilenebilir enerji dönüşümünün öncüsü olmaktır. Bu vizyon doğrultusunda benimsediğimiz temel değerler şunlardır:',
-					bullets: [
-						'**Müşteri Odaklılık:** Her projede müşterilerimizin ihtiyaç ve beklentilerini ilk sıraya koyarak, onlara özel, anahtar teslim çözümler üretiyoruz.',
-						'**Kalite ve Güvenilirlik:** Yalnızca en yüksek kalitede, sertifikalı ve verimliliği kanıtlanmış panel, invertör ve diğer ekipmanları kullanıyoruz.',
-						'**İnovasyon:** Sektördeki en son teknolojileri ve mühendislik yaklaşımlarını yakından takip ederek projelerimize entegre ediyoruz.',
-						'**Sürdürülebilirlik:** Faaliyetlerimizin her aşamasında ekolojik dengeyi gözetiyor, karbon ayak izini azaltmayı hedefliyoruz.'
-					]
-				},
-				{
-					title: 'Neden RMR Enerji?',
-					content: 'Enerji ihtiyacınız için bizi tercih etmeniz, sadece bir yatırım değil, aynı zamanda güvenilir bir ortaklık anlamına gelir. İşte bizi farklı kılanlar:',
-					bullets: [
-						'**Uçtan Uca Proje Yönetimi:** Keşif ve projelendirmeden, TEDAŞ onay süreçlerine, kurulumdan devreye almaya ve uzun dönemli bakıma kadar tüm süreci sizin için yönetiyoruz.',
-						'**Uzman Kadro:** Alanında deneyimli mühendislerimiz ve sertifikalı teknik ekiplerimizle projelerinizi uluslararası standartlarda hayata geçiriyoruz.',
-						'**Finansal Avantajlar:** Güneş enerjisi yatırımınızın geri dönüş süresini (amortisman) en aza indirecek, optimum maliyetli ve yüksek verimli sistemler tasarlıyoruz.',
-						'**Mevzuat Hakimiyeti:** Lisanssız üretim yönetmeliği ve diğer yasal süreçlerdeki güncel bilgi birikimimizle, projenizin sorunsuz ilerlemesi için danışmanlık sağlıyoruz.'
-					]
-				},
-				{
-					title: 'Sunduğumuz Çözümler ve Yetkinlikler',
-					content: 'Geniş bir yelpazede, her ihtiyaca uygun güneş enerjisi çözümleri sunuyoruz:',
-					bullets: [
-						'**Çatı ve Arazi Tipi GES Projeleri:** Endüstriyel tesisler, ticari binalar, tarım arazileri ve konutlar için 50’den fazla başarılı GES projesini hayata geçirdik.',
-						'**Kurulum ve Montaj Hizmetleri:** Güvenlik standartlarından ödün vermeden, hızlı ve profesyonel kurulum hizmetleri sunuyoruz.',
-						'**Bakım, Onarım ve İzleme:** Kurulum sonrası sistemlerinizin performansını anlık olarak izliyor, periyodik bakımlarla maksimum verimlilikte çalışmasını sağlıyoruz.',
-						'**Yüksek Verimli Ekipman Tedariki:** Dünyanın önde gelen markalarından yüksek verimli güneş panelleri, invertörler ve taşıyıcı konstrüksiyon sistemleri tedarik ediyoruz.'
-					]
-				}
-			],
+			description: `Güneş enerjisi sektöründe RMR Enerji olarak misyonumuz, sürdürülebilir ve yenilikçi enerji çözümleri sunarak dünyamızı daha temiz, yaşanabilir ve verimli bir geleceğe taşımaktır. Güneşin sonsuz gücünden ilham alarak, hem çevre dostu hem de ekonomik açıdan verimli enerji alternatifleriyle geleceği bugünden şekillendiriyoruz. Müşterilerimize sadece bir ürün veya hizmet değil, aynı zamanda daha parlak bir gelecek vaadi sunuyoruz.`,
 
 			closingStatement: 'RMR Enerji ile güneşin gücünü işinize ve hayatınıza taşıyın. Temiz enerjiye geçiş yolculuğunuzda güvenilir çözüm ortağınız olmak için buradayız.'
 		};
