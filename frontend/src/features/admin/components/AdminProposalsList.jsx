@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
+import UserAvatar from "../../../components/ui/UserAvatar";
 
 const AdminProposalsList = () => {
   const { user } = useAuth();
@@ -147,23 +148,11 @@ const AdminProposalsList = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-8 w-8">
-                        <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-                          <span className="text-xs font-medium text-indigo-600">
-                            {proposal.owner?.name?.charAt(0)?.toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="ml-3">
-                        <div className="text-sm font-medium text-gray-900">
-                          {proposal.owner?.name}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {proposal.owner?.email}
-                        </div>
-                      </div>
-                    </div>
+                    <UserAvatar
+                      user={proposal.owner}
+                      size="sm"
+                      showName={true}
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span

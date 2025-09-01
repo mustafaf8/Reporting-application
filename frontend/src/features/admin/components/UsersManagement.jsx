@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
+import UserAvatar from "../../../components/ui/UserAvatar";
 
 const UsersManagement = () => {
   const { user } = useAuth();
@@ -110,20 +111,7 @@ const UsersManagement = () => {
               {users.map((user) => (
                 <tr key={user._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                          <span className="text-sm font-medium text-indigo-600">
-                            {user.name?.charAt(0)?.toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.name}
-                        </div>
-                      </div>
-                    </div>
+                    <UserAvatar user={user} size="md" showName={true} />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {user.email}

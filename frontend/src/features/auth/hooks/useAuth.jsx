@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useCallback,
 } from "react";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
@@ -85,8 +86,32 @@ export const AuthProvider = ({ children }) => {
     toast.success("Başarıyla çıkış yapıldı");
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
+  const refreshUser = useCallback(async () => {
+    try {
+      if (!token) return;
+      const { data } = await api.get("/api/auth/me");
+      setUser(data.data?.user || data.user);
+    } catch (err) {
+      console.error("User refresh error:", err);
+    }
+  }, [token]);
+
   const value = useMemo(
-    () => ({ user, token, loading, login, register, logout, bootstrapping }),
+    () => ({
+      user,
+      token,
+      loading,
+      login,
+      register,
+      logout,
+      updateUser,
+      refreshUser,
+      bootstrapping,
+    }),
     [user, token, loading, bootstrapping]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

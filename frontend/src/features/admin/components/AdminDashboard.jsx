@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
+import UserAvatar from "../../../components/ui/UserAvatar";
 
 const AdminDashboard = () => {
   const { user } = useAuth();

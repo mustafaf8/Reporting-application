@@ -87,8 +87,16 @@ router.put(
   validate(schemas.updateProfile),
   async (req, res) => {
     try {
-      const { name, position, department, company, phone, address, bio } =
-        req.body;
+      const {
+        name,
+        position,
+        department,
+        company,
+        phone,
+        address,
+        bio,
+        profileImageUrl,
+      } = req.body;
 
       // Sadece güncellenebilir alanları belirle
       const updateData = {};
@@ -99,6 +107,8 @@ router.put(
       if (phone !== undefined) updateData.phone = phone;
       if (address !== undefined) updateData.address = address;
       if (bio !== undefined) updateData.bio = bio;
+      if (profileImageUrl !== undefined)
+        updateData.profileImageUrl = profileImageUrl;
 
       updateData.updatedAt = new Date();
 
