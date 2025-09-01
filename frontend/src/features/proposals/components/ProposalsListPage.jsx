@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
+import EmptyState from "../../../components/ui/EmptyState";
 
 const ProposalsListPage = () => {
   const [items, setItems] = useState([]);
@@ -65,15 +67,19 @@ const ProposalsListPage = () => {
   const handleStatusChange = async (proposalId, newStatus) => {
     try {
       setUpdatingStatus(proposalId);
-      await api.patch(`/api/proposals/${proposalId}/status`, { status: newStatus });
-      
+      await api.patch(`/api/proposals/${proposalId}/status`, {
+        status: newStatus,
+      });
+
       // Local state'i güncelle
-      setItems(prev => prev.map(proposal => 
-        proposal._id === proposalId 
-          ? { ...proposal, status: newStatus }
-          : proposal
-      ));
-      
+      setItems((prev) =>
+        prev.map((proposal) =>
+          proposal._id === proposalId
+            ? { ...proposal, status: newStatus }
+            : proposal
+        )
+      );
+
       toast.success("Teklif durumu güncellendi");
     } catch (err) {
       toast.error("Durum güncellenirken hata oluştu");
@@ -85,8 +91,8 @@ const ProposalsListPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-96 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Teklifler yükleniyor..." />
       </div>
     );
   }
@@ -152,21 +158,34 @@ const ProposalsListPage = () => {
       {/* Proposals Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {items.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 text-6xl mb-4">📋</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Henüz teklif bulunmuyor
-            </h3>
-            <p className="text-gray-500 mb-4">
-              İlk teklifinizi oluşturmak için yukarıdaki butonu kullanın.
-            </p>
-            <Link
-              to="/"
-              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              Teklif Oluştur
-            </Link>
-          </div>
+          <EmptyState
+            icon={
+              <svg
+                className="h-12 w-12 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            }
+            title="Henüz teklif bulunmuyor"
+            description="İlk teklifinizi oluşturmak için aşağıdaki butonu kullanın."
+            action={
+              <Link
+                to="/"
+                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                <span className="mr-2">+</span>
+                Teklif Oluştur
+              </Link>
+            }
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -221,7 +240,9 @@ const ProposalsListPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <select
                         value={proposal.status}
-                        onChange={(e) => handleStatusChange(proposal._id, e.target.value)}
+                        onChange={(e) =>
+                          handleStatusChange(proposal._id, e.target.value)
+                        }
                         disabled={updatingStatus === proposal._id}
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50"
                       >
@@ -232,12 +253,20 @@ const ProposalsListPage = () => {
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <Link
-                        to={`/proposals/${proposal._id}`}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
-                      >
-                        Görüntüle
-                      </Link>
+                      <div className="flex justify-center space-x-2">
+                        <Link
+                          to={`/proposals/${proposal._id}`}
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
+                        >
+                          Görüntüle
+                        </Link>
+                        <Link
+                          to={`/proposals/${proposal._id}/edit`}
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 transition-colors"
+                        >
+                          Düzenle
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
