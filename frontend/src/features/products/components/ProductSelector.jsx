@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import api from "../../../services/api";
+import toast from "react-hot-toast";
 
 const ProductSelector = ({ onProductSelect, selectedProducts = [] }) => {
   const [products, setProducts] = useState([]);
@@ -9,10 +10,15 @@ const ProductSelector = ({ onProductSelect, selectedProducts = [] }) => {
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
+  // Debounced search effect
   useEffect(() => {
     if (showModal) {
-      fetchProducts();
       fetchCategories();
+      const timeoutId = setTimeout(() => {
+        fetchProducts();
+      }, 300); // 300ms debounce
+
+      return () => clearTimeout(timeoutId);
     }
   }, [showModal, searchTerm, categoryFilter]);
 
@@ -28,6 +34,7 @@ const ProductSelector = ({ onProductSelect, selectedProducts = [] }) => {
       setProducts(data.items || []);
     } catch (err) {
       console.error("Products fetch error:", err);
+      toast.error("Ürünler yüklenirken hata oluştu");
     } finally {
       setLoading(false);
     }
@@ -46,9 +53,11 @@ const ProductSelector = ({ onProductSelect, selectedProducts = [] }) => {
     // Eğer ürün zaten seçilmişse, seçimi kaldır
     if (selectedProducts.some((p) => p._id === product._id)) {
       onProductSelect(selectedProducts.filter((p) => p._id !== product._id));
+      toast.success(`${product.name} seçimden kaldırıldı`);
     } else {
       // Ürünü seçili listeye ekle
       onProductSelect([...selectedProducts, product]);
+      toast.success(`${product.name} seçildi`);
     }
   };
 
@@ -99,13 +108,50 @@ const ProductSelector = ({ onProductSelect, selectedProducts = [] }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Ürün Adı ile Ara
                   </label>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Ürün adı girin..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Ürün adı girin..."
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm("")}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      >
+                        <svg
+                          className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -141,33 +187,45 @@ const ProductSelector = ({ onProductSelect, selectedProducts = [] }) => {
                     {products.map((product) => (
                       <div
                         key={product._id}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md ${
                           isProductSelected(product._id)
-                            ? "border-indigo-500 bg-indigo-50"
-                            : "border-gray-200 hover:border-gray-300"
+                            ? "border-indigo-500 bg-indigo-50 shadow-md"
+                            : "border-gray-200 hover:border-indigo-300 hover:bg-gray-50"
                         }`}
                         onClick={() => handleProductSelect(product)}
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">
-                              {product.name}
-                            </h4>
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h4 className="font-medium text-gray-900">
+                                {product.name}
+                              </h4>
+                              {isProductSelected(product._id) && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                  Seçildi
+                                </span>
+                              )}
+                            </div>
                             {product.category && (
-                              <p className="text-sm text-gray-500">
-                                {product.category}
+                              <p className="text-sm text-gray-500 mb-1">
+                                📁 {product.category}
                               </p>
                             )}
-                            <p className="text-sm text-gray-600">
-                              {product.unitPrice.toLocaleString("tr-TR")} ₺ /{" "}
+                            <p className="text-sm font-medium text-indigo-600">
+                              💰 {product.unitPrice.toLocaleString("tr-TR")} ₺ /{" "}
                               {product.unit}
                             </p>
+                            {product.description && (
+                              <p className="text-xs text-gray-400 mt-1 line-clamp-2">
+                                {product.description}
+                              </p>
+                            )}
                           </div>
-                          <div className="ml-2">
-                            {isProductSelected(product._id) && (
-                              <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center">
+                          <div className="ml-3">
+                            {isProductSelected(product._id) ? (
+                              <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center">
                                 <svg
-                                  className="w-3 h-3 text-white"
+                                  className="w-4 h-4 text-white"
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -177,6 +235,10 @@ const ProductSelector = ({ onProductSelect, selectedProducts = [] }) => {
                                     clipRule="evenodd"
                                   />
                                 </svg>
+                              </div>
+                            ) : (
+                              <div className="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
                               </div>
                             )}
                           </div>
@@ -189,20 +251,48 @@ const ProductSelector = ({ onProductSelect, selectedProducts = [] }) => {
 
               {/* Selected Products Summary */}
               {selectedProducts.length > 0 && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">
-                    Seçilen Ürünler ({selectedProducts.length})
-                  </h4>
-                  <div className="space-y-1">
+                <div className="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-indigo-900">
+                      Seçilen Ürünler ({selectedProducts.length})
+                    </h4>
+                    <button
+                      onClick={() => onProductSelect([])}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                    >
+                      Tümünü Temizle
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
                     {selectedProducts.map((product) => (
                       <div
                         key={product._id}
-                        className="flex justify-between items-center text-sm"
+                        className="flex justify-between items-center text-sm bg-white p-2 rounded border"
                       >
-                        <span className="text-gray-700">{product.name}</span>
-                        <span className="text-gray-500">
-                          {product.unitPrice.toLocaleString("tr-TR")} ₺
-                        </span>
+                        <div className="flex-1">
+                          <span className="text-gray-700 font-medium">
+                            {product.name}
+                          </span>
+                          {product.category && (
+                            <span className="text-gray-500 text-xs ml-2">
+                              ({product.category})
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-indigo-600 font-medium">
+                            {product.unitPrice.toLocaleString("tr-TR")} ₺
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProductSelect(product);
+                            }}
+                            className="text-red-500 hover:text-red-700 text-xs"
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
