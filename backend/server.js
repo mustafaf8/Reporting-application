@@ -3,6 +3,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
+const path = require("path");
 const logger = require("./src/config/logger");
 
 dotenv.config();
@@ -19,6 +20,7 @@ const productRoutes = require("./src/routes/productRoutes");
 const proposalRoutes = require("./src/routes/proposalRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
+const uploadRoutes = require("./src/routes/uploadRoutes");
 
 const app = express();
 
@@ -32,6 +34,9 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(morgan("combined", { stream: logger.stream }));
+
+// Static dosya servisi - uploads klasörü için
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Response mesajları için middleware
 app.use((req, res, next) => {
@@ -62,6 +67,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/proposals", proposalRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

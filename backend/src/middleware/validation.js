@@ -91,6 +91,9 @@ const schemas = {
     bio: Joi.string().max(1000).optional().allow("").messages({
       "string.max": "Hakkımda en fazla 1000 karakter olabilir",
     }),
+    profileImageUrl: Joi.string().uri().optional().allow("").messages({
+      "string.uri": "Geçerli bir URL giriniz",
+    }),
   }),
 
   // Proposal schemas

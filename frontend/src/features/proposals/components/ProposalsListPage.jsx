@@ -4,6 +4,7 @@ import api from "../../../services/api";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 import EmptyState from "../../../components/ui/EmptyState";
+import UserAvatar from "../../../components/ui/UserAvatar";
 
 const ProposalsListPage = () => {
   const [items, setItems] = useState([]);

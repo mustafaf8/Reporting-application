@@ -59,6 +59,7 @@ function App() {
           <Route path="admin/users" element={<UsersManagement />} />
           <Route path="admin/proposals" element={<AdminProposalsList />} />
           <Route path="admin/products" element={<AdminProductsList />} />
+
           {/* Eşleşmeyen tüm yollar için 404 sayfası */}
           <Route path="*" element={<NotFoundPage />} />
         </Route>
