@@ -7,6 +7,12 @@ const logger = require("./src/config/logger");
 
 dotenv.config();
 
+// Environment variables
+const PORT = process.env.PORT || 5000;
+const MONGODB_URI =
+  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/rmr_teklif";
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
+
 const pdfRoutes = require("./src/routes/pdfRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 const productRoutes = require("./src/routes/productRoutes");
@@ -134,11 +140,6 @@ app.use((err, req, res, next) => {
     message: "Sunucu hatası",
   });
 });
-
-const PORT = process.env.PORT || 5000;
-const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/rmr_teklif";
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
 
 // Ortam değişkenlerini kontrol et
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === "production") {
