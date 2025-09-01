@@ -84,6 +84,22 @@ app.use((err, req, res, next) => {
     });
   }
 
+  // JWT token expired hatası
+  if (err.name === "TokenExpiredError") {
+    return res.status(401).json({
+      success: false,
+      message: "Token süresi dolmuş",
+    });
+  }
+
+  // Cast error (ObjectId geçersiz)
+  if (err.name === "CastError") {
+    return res.status(400).json({
+      success: false,
+      message: "Geçersiz ID formatı",
+    });
+  }
+
   // Varsayılan hata
   res.status(500).json({
     success: false,

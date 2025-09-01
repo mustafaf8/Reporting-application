@@ -56,6 +56,26 @@ router.put("/:id", auth, async (req, res) => {
   }
 });
 
+// Sadece status güncelleme için özel endpoint
+router.patch("/:id/status", auth, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!status) {
+      return res.status(400).json({ message: "Status alanı gerekli" });
+    }
+    
+    const proposal = await proposalService.updateProposalStatus(
+      req.params.id,
+      status
+    );
+    return res.json(proposal);
+  } catch (err) {
+    return res
+      .status(400)
+      .json({ message: "Status güncellenemedi", error: err.message });
+  }
+});
+
 // Delete
 router.delete("/:id", auth, async (req, res) => {
   try {

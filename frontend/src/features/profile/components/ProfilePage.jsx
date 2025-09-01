@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import api from "../../../services/api";
+import toast from "react-hot-toast";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -8,6 +9,8 @@ const ProfilePage = () => {
   const [performanceData, setPerformanceData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -20,6 +23,16 @@ const ProfilePage = () => {
 
         setProfileData(profileResponse.data);
         setPerformanceData(performanceResponse.data);
+        // Edit form için başlangıç değerlerini ayarla
+        setEditForm({
+          name: profileResponse.data.user.name || "",
+          position: profileResponse.data.user.position || "",
+          department: profileResponse.data.user.department || "",
+          company: profileResponse.data.user.company || "",
+          phone: profileResponse.data.user.phone || "",
+          address: profileResponse.data.user.address || "",
+          bio: profileResponse.data.user.bio || "",
+        });
       } catch (err) {
         setError("Profil verileri yüklenemedi");
         console.error("Profile fetch error:", err);
@@ -35,7 +48,7 @@ const ProfilePage = () => {
 
   const handleStatusChange = async (proposalId, newStatus) => {
     try {
-      await api.put(`/api/proposals/${proposalId}`, { status: newStatus });
+      await api.patch(`/api/proposals/${proposalId}/status`, { status: newStatus });
 
       // Local state'i güncelle
       setProfileData((prev) => ({
@@ -53,6 +66,36 @@ const ProfilePage = () => {
     } catch (err) {
       console.error("Status update error:", err);
     }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await api.put(`/api/users/me/profile`, editForm);
+      setProfileData(prev => ({
+        ...prev,
+        user: { ...prev.user, ...editForm }
+      }));
+      setIsEditing(false);
+      toast.success("Profil başarıyla güncellendi");
+    } catch (err) {
+      toast.error("Profil güncellenirken hata oluştu");
+      console.error("Profile update error:", err);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    // Form verilerini orijinal değerlere sıfırla
+    setEditForm({
+      name: profileData?.user?.name || "",
+      position: profileData?.user?.position || "",
+      department: profileData?.user?.department || "",
+      company: profileData?.user?.company || "",
+      phone: profileData?.user?.phone || "",
+      address: profileData?.user?.address || "",
+      bio: profileData?.user?.bio || "",
+    });
   };
 
   const getStatusColor = (status) => {
@@ -105,47 +148,198 @@ const ProfilePage = () => {
     <div className="space-y-8">
       {/* Kullanıcı Bilgileri */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Profil Bilgileri
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Ad Soyad
-            </label>
-            <p className="mt-1 text-sm text-gray-900">
-              {profileData?.user?.name}
-            </p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              E-posta
-            </label>
-            <p className="mt-1 text-sm text-gray-900">
-              {profileData?.user?.email}
-            </p>
-          </div>
-          {profileData?.user?.position && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Pozisyon
-              </label>
-              <p className="mt-1 text-sm text-gray-900">
-                {profileData.user.position}
-              </p>
-            </div>
-          )}
-          {profileData?.user?.department && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Departman
-              </label>
-              <p className="mt-1 text-sm text-gray-900">
-                {profileData.user.department}
-              </p>
-            </div>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Profil Bilgileri
+          </h2>
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            >
+              Düzenle
+            </button>
           )}
         </div>
+
+        {!isEditing ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Ad Soyad
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {profileData?.user?.name}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                E-posta
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {profileData?.user?.email}
+              </p>
+            </div>
+            {profileData?.user?.position && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Pozisyon
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {profileData.user.position}
+                </p>
+              </div>
+            )}
+            {profileData?.user?.department && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Departman
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {profileData.user.department}
+                </p>
+              </div>
+            )}
+            {profileData?.user?.company && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Şirket
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {profileData.user.company}
+                </p>
+              </div>
+            )}
+            {profileData?.user?.phone && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Telefon
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {profileData.user.phone}
+                </p>
+              </div>
+            )}
+            {profileData?.user?.address && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Adres
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {profileData.user.address}
+                </p>
+              </div>
+            )}
+            {profileData?.user?.bio && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Hakkımda
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {profileData.user.bio}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Ad Soyad
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="mt-1 w-full border border-gray-300 rounded-md p-2"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Pozisyon
+                </label>
+                <input
+                  type="text"
+                  value={editForm.position}
+                  onChange={(e) => setEditForm({ ...editForm, position: e.target.value })}
+                  className="mt-1 w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Departman
+                </label>
+                <input
+                  type="text"
+                  value={editForm.department}
+                  onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                  className="mt-1 w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Şirket
+                </label>
+                <input
+                  type="text"
+                  value={editForm.company}
+                  onChange={(e) => setEditForm({ ...editForm, company: e.target.value })}
+                  className="mt-1 w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Telefon
+                </label>
+                <input
+                  type="text"
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="mt-1 w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Adres
+                </label>
+                <input
+                  type="text"
+                  value={editForm.address}
+                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  className="mt-1 w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Hakkımda
+                </label>
+                <textarea
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  rows={3}
+                  className="mt-1 w-full border border-gray-300 rounded-md p-2"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={handleEditCancel}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                İptal
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                Kaydet
+              </button>
+            </div>
+          </form>
+        )}
       </div>
 
       {/* Performans Göstergeleri */}
