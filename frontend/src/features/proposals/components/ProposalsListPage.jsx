@@ -65,15 +65,19 @@ const ProposalsListPage = () => {
   const handleStatusChange = async (proposalId, newStatus) => {
     try {
       setUpdatingStatus(proposalId);
-      await api.patch(`/api/proposals/${proposalId}/status`, { status: newStatus });
-      
+      await api.patch(`/api/proposals/${proposalId}/status`, {
+        status: newStatus,
+      });
+
       // Local state'i güncelle
-      setItems(prev => prev.map(proposal => 
-        proposal._id === proposalId 
-          ? { ...proposal, status: newStatus }
-          : proposal
-      ));
-      
+      setItems((prev) =>
+        prev.map((proposal) =>
+          proposal._id === proposalId
+            ? { ...proposal, status: newStatus }
+            : proposal
+        )
+      );
+
       toast.success("Teklif durumu güncellendi");
     } catch (err) {
       toast.error("Durum güncellenirken hata oluştu");
@@ -221,7 +225,9 @@ const ProposalsListPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <select
                         value={proposal.status}
-                        onChange={(e) => handleStatusChange(proposal._id, e.target.value)}
+                        onChange={(e) =>
+                          handleStatusChange(proposal._id, e.target.value)
+                        }
                         disabled={updatingStatus === proposal._id}
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50"
                       >
@@ -232,12 +238,20 @@ const ProposalsListPage = () => {
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <Link
-                        to={`/proposals/${proposal._id}`}
-                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
-                      >
-                        Görüntüle
-                      </Link>
+                      <div className="flex justify-center space-x-2">
+                        <Link
+                          to={`/proposals/${proposal._id}`}
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
+                        >
+                          Görüntüle
+                        </Link>
+                        <Link
+                          to={`/proposals/${proposal._id}/edit`}
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 transition-colors"
+                        >
+                          Düzenle
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -19,9 +19,22 @@ const MainLayout = () => {
               Teklifler
             </Link>
             {user && (
-              <Link className="text-indigo-600 hover:underline" to="/profile">
-                Profilim
-              </Link>
+              <>
+                <Link
+                  className="text-indigo-600 hover:underline"
+                  to="/products"
+                >
+                  Ürünler
+                </Link>
+                <Link className="text-indigo-600 hover:underline" to="/profile">
+                  Profilim
+                </Link>
+                {user.role === "admin" && (
+                  <Link className="text-indigo-600 hover:underline" to="/admin">
+                    Admin
+                  </Link>
+                )}
+              </>
             )}
             <span className="flex-1"></span>
             {user ? (

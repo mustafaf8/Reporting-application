@@ -1,4 +1,5 @@
 const Proposal = require("../models/Proposal");
+const logger = require("../config/logger");
 
 // Yardımcı fonksiyonlar
 function computeLineTotals(items) {
@@ -54,6 +55,13 @@ const proposalService = {
       extraCosts,
       status: status || "draft",
       owner: userId,
+    });
+
+    logger.business("Proposal created", {
+      proposalId: proposal._id,
+      customerName,
+      grandTotal,
+      userId,
     });
 
     return proposal;
@@ -149,6 +157,13 @@ const proposalService = {
     if (!proposal) {
       throw new Error("Teklif bulunamadı");
     }
+
+    logger.business("Proposal status updated", {
+      proposalId,
+      oldStatus: proposal.status,
+      newStatus: status,
+    });
+
     return proposal;
   },
 };
