@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../services/api";
+import toast from "react-hot-toast";
 
 const ProposalsListPage = () => {
   const [items, setItems] = useState([]);
@@ -8,6 +9,7 @@ const ProposalsListPage = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [updatingStatus, setUpdatingStatus] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -57,6 +59,27 @@ const ProposalsListPage = () => {
         return "Taslak";
       default:
         return status;
+    }
+  };
+
+  const handleStatusChange = async (proposalId, newStatus) => {
+    try {
+      setUpdatingStatus(proposalId);
+      await api.patch(`/api/proposals/${proposalId}/status`, { status: newStatus });
+      
+      // Local state'i güncelle
+      setItems(prev => prev.map(proposal => 
+        proposal._id === proposalId 
+          ? { ...proposal, status: newStatus }
+          : proposal
+      ));
+      
+      toast.success("Teklif durumu güncellendi");
+    } catch (err) {
+      toast.error("Durum güncellenirken hata oluştu");
+      console.error("Status update error:", err);
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -162,6 +185,9 @@ const ProposalsListPage = () => {
                     Toplam
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Durum
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     İşlemler
                   </th>
                 </tr>
@@ -191,6 +217,19 @@ const ProposalsListPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
                       {proposal.grandTotal?.toLocaleString("tr-TR")} ₺
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <select
+                        value={proposal.status}
+                        onChange={(e) => handleStatusChange(proposal._id, e.target.value)}
+                        disabled={updatingStatus === proposal._id}
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50"
+                      >
+                        <option value="draft">Taslak</option>
+                        <option value="sent">Gönderildi</option>
+                        <option value="approved">Onaylandı</option>
+                        <option value="rejected">Reddedildi</option>
+                      </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <Link

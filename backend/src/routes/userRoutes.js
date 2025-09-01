@@ -78,4 +78,38 @@ router.get("/me/performance", auth, async (req, res) => {
   }
 });
 
+// Profil güncelleme endpoint'i
+router.put("/me/profile", auth, async (req, res) => {
+  try {
+    const { name, position, department, company, phone, address, bio } = req.body;
+    
+    // Sadece güncellenebilir alanları belirle
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (position !== undefined) updateData.position = position;
+    if (department !== undefined) updateData.department = department;
+    if (company !== undefined) updateData.company = company;
+    if (phone !== undefined) updateData.phone = phone;
+    if (address !== undefined) updateData.address = address;
+    if (bio !== undefined) updateData.bio = bio;
+    
+    updateData.updatedAt = new Date();
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select("-passwordHash");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    return res.json(updatedUser);
+  } catch (error) {
+    console.error("Profile update error:", error);
+    return res.status(500).json({ message: "Profil güncellenemedi" });
+  }
+});
+
 module.exports = router;

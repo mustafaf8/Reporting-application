@@ -8,6 +8,9 @@ const userSchema = new mongoose.Schema({
   profileImageUrl: { type: String, default: "" },
   phone: { type: String, default: "" },
   department: { type: String, default: "" },
+  company: { type: String, default: "" },
+  address: { type: String, default: "" },
+  bio: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
