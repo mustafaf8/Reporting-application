@@ -60,11 +60,14 @@ const UserAvatar = ({
     "5xl": "text-4xl",
   };
 
-  // Resim URL'ini oluştur
-  const getImageUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith("http")) return url;
-    return `${API_BASE_URL}${url}`;
+  // Resim URL'ini oluştur (Cloudinary doğrudan URL)
+  const getImageUrl = () => {
+    if (!user?.profileImageUrl) return null;
+    const ts = Date.now();
+    if (user.profileImageUrl.includes("res.cloudinary.com")) {
+      return `${user.profileImageUrl}?t=${ts}`;
+    }
+    return user.profileImageUrl;
   };
 
   // Kullanıcı adının ilk harfini al
@@ -107,7 +110,7 @@ const UserAvatar = ({
       >
         {user?.profileImageUrl && !imageError ? (
           <img
-            src={getImageUrl(user.profileImageUrl)}
+            src={getImageUrl()}
             alt={`${user.name} profil fotoğrafı`}
             className="w-full h-full object-cover"
             onLoadStart={() => {
