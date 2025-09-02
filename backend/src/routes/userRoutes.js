@@ -7,6 +7,22 @@ const { validate, schemas } = require("../middleware/validation");
 
 const router = express.Router();
 
+// Profil resmi servis endpoint'i (MongoDB Buffer'dan)
+router.get("/:id/profile-image", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select("profileImage");
+    if (!user || !user.profileImage || !user.profileImage.data) {
+      return res.status(404).send("Not found");
+    }
+
+    res.set("Content-Type", user.profileImage.contentType || "image/jpeg");
+    return res.send(user.profileImage.data);
+  } catch (error) {
+    logger.error("Serve profile image error", { error: error.message });
+    return res.status(500).send("Server error");
+  }
+});
+
 // Kullanıcı profili endpoint'i
 router.get("/me/profile", auth, async (req, res) => {
   try {
@@ -87,16 +103,8 @@ router.put(
   validate(schemas.updateProfile),
   async (req, res) => {
     try {
-      const {
-        name,
-        position,
-        department,
-        company,
-        phone,
-        address,
-        bio,
-        profileImageUrl,
-      } = req.body;
+      const { name, position, department, company, phone, address, bio } =
+        req.body;
 
       // Sadece güncellenebilir alanları belirle
       const updateData = {};
@@ -107,8 +115,6 @@ router.put(
       if (phone !== undefined) updateData.phone = phone;
       if (address !== undefined) updateData.address = address;
       if (bio !== undefined) updateData.bio = bio;
-      if (profileImageUrl !== undefined)
-        updateData.profileImageUrl = profileImageUrl;
 
       updateData.updatedAt = new Date();
 

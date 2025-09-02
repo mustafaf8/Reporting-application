@@ -4,31 +4,16 @@ const path = require("path");
 const fs = require("fs");
 const auth = require("../middleware/auth");
 const logger = require("../config/logger");
+const User = require("../models/User");
+const cloudinary = require("../config/cloudinary");
 
 const router = express.Router();
 
-// Upload klasörünü oluştur
-const uploadDir = path.join(__dirname, "../../uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Multer konfigürasyonu
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Dosya adını kullanıcı ID + timestamp + orijinal uzantı olarak ayarla
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, `profile-${req.user.id}-${uniqueSuffix}${ext}`);
-  },
-});
+// Multer konfigürasyonu => memoryStorage
+const storage = multer.memoryStorage();
 
 // Dosya filtresi
 const fileFilter = (req, file, cb) => {
-  // Sadece resim dosyalarını kabul et
   if (file.mimetype.startsWith("image/")) {
     cb(null, true);
   } else {
@@ -37,14 +22,12 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: fileFilter,
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter,
 });
 
-// Profil fotoğrafı yükleme
+// Profil fotoğrafı yükleme (Cloudinary)
 router.post(
   "/profile-image",
   auth,
@@ -52,110 +35,111 @@ router.post(
   async (req, res) => {
     try {
       if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: "Dosya seçilmedi",
-        });
+        return res
+          .status(400)
+          .json({ success: false, message: "Dosya seçilmedi" });
       }
 
-      const User = require("../models/User");
-
-      // Eski profil fotoğrafını sil
-      const user = await User.findById(req.user.id);
-      if (user.profileImageUrl) {
-        const oldImagePath = path.join(
-          uploadDir,
-          path.basename(user.profileImageUrl)
-        );
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
+      // Önce var olan varsa Cloudinary'den sil
+      const currentUser = await User.findById(req.user.id);
+      if (currentUser?.profileImagePublicId) {
+        try {
+          await cloudinary.uploader.destroy(currentUser.profileImagePublicId);
+        } catch (e) {
+          logger.warn("Cloudinary destroy failed", { error: e.message });
         }
       }
 
-      // Yeni profil fotoğrafı URL'ini güncelle
-      const imageUrl = `/uploads/${req.file.filename}`;
-      await User.findByIdAndUpdate(req.user.id, {
-        profileImageUrl: imageUrl,
-        updatedAt: new Date(),
-      });
+      // Yükleme (Cloudinary stream - await kullanılmaz)
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "reporting-app/profile-images",
+          resource_type: "image",
+          overwrite: true,
+          transformation: [{ width: 512, height: 512, crop: "limit" }],
+        },
+        async (error, result) => {
+          if (error) {
+            logger.error("Cloudinary upload error", { error: error.message });
+            return res
+              .status(500)
+              .json({ success: false, message: "Yükleme hatası" });
+          }
 
-      logger.business("Profile image uploaded", {
-        userId: req.user.id,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-      });
+          const updated = await User.findByIdAndUpdate(
+            req.user.id,
+            {
+              profileImageUrl: result.secure_url,
+              profileImagePublicId: result.public_id,
+              updatedAt: new Date(),
+            },
+            { new: true }
+          ).select("-passwordHash");
 
-      res.json({
-        success: true,
-        message: "Profil fotoğrafı başarıyla yüklendi",
-        imageUrl: imageUrl,
-      });
+          logger.business("Profile image uploaded (Cloudinary)", {
+            userId: req.user.id,
+            publicId: result.public_id,
+          });
+
+          return res.json({
+            success: true,
+            message: "Profil fotoğrafı yüklendi",
+            imageUrl: result.secure_url,
+            user: updated,
+          });
+        }
+      );
+
+      // stream'e buffer'ı yaz
+      uploadStream.end(req.file.buffer);
     } catch (error) {
       logger.error("Profile image upload error:", {
         error: error.message,
         userId: req.user.id,
       });
-
-      // Hata durumunda yüklenen dosyayı sil
-      if (req.file) {
-        const filePath = path.join(uploadDir, req.file.filename);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      }
-
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
         message: "Profil fotoğrafı yüklenirken hata oluştu",
-        error: error.message,
       });
     }
   }
 );
 
-// Profil fotoğrafı silme
+// Profil fotoğrafı silme (Cloudinary)
 router.delete("/profile-image", auth, async (req, res) => {
   try {
-    const User = require("../models/User");
-
-    const user = await User.findById(req.user.id);
-    if (!user.profileImageUrl) {
-      return res.status(404).json({
-        success: false,
-        message: "Profil fotoğrafı bulunamadı",
-      });
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser?.profileImagePublicId) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Profil fotoğrafı bulunamadı" });
     }
 
-    // Dosyayı sil
-    const imagePath = path.join(uploadDir, path.basename(user.profileImageUrl));
-    if (fs.existsSync(imagePath)) {
-      fs.unlinkSync(imagePath);
+    try {
+      await cloudinary.uploader.destroy(currentUser.profileImagePublicId);
+    } catch (e) {
+      logger.warn("Cloudinary destroy failed", { error: e.message });
     }
 
-    // Veritabanından kaldır
     await User.findByIdAndUpdate(req.user.id, {
       profileImageUrl: "",
+      profileImagePublicId: "",
       updatedAt: new Date(),
     });
 
-    logger.business("Profile image deleted", {
+    logger.business("Profile image deleted (Cloudinary)", {
       userId: req.user.id,
     });
 
-    res.json({
-      success: true,
-      message: "Profil fotoğrafı başarıyla silindi",
-    });
+    res.json({ success: true, message: "Profil fotoğrafı silindi" });
   } catch (error) {
     logger.error("Profile image delete error:", {
       error: error.message,
       userId: req.user.id,
     });
-
     res.status(500).json({
       success: false,
       message: "Profil fotoğrafı silinirken hata oluştu",
-      error: error.message,
     });
   }
 });

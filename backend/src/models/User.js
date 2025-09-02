@@ -10,7 +10,9 @@ const userSchema = new mongoose.Schema({
     default: "user",
   },
   position: { type: String, default: "" },
+  // Cloudinary ile saklanan profil resmi
   profileImageUrl: { type: String, default: "" },
+  profileImagePublicId: { type: String, default: "" },
   phone: { type: String, default: "" },
   department: { type: String, default: "" },
   company: { type: String, default: "" },

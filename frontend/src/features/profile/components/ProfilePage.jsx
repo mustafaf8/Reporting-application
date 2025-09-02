@@ -38,7 +38,6 @@ const ProfilePage = () => {
           phone: profileResponse.data.user.phone || "",
           address: profileResponse.data.user.address || "",
           bio: profileResponse.data.user.bio || "",
-          profileImageUrl: profileResponse.data.user.profileImageUrl || "",
         });
 
         // Header'ı güncelle (sadece bir kez)

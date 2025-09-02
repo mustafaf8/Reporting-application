@@ -73,7 +73,9 @@ const ProfileImageUpload = ({
 
       if (response.data.success) {
         toast.success("Profil fotoğrafı başarıyla yüklendi");
-        onImageChange(response.data.imageUrl);
+        // Cloudinary URL'i dönüyor olabilir
+        const url = response.data.imageUrl;
+        onImageChange && onImageChange(url || null);
         setPreviewUrl(null);
       }
     } catch (error) {
@@ -88,7 +90,7 @@ const ProfileImageUpload = ({
   };
 
   const handleDeleteImage = async () => {
-    if (!currentImageUrl) return;
+    // DB saklama ile URL zorunlu değil
 
     if (
       !window.confirm("Profil fotoğrafını silmek istediğinizden emin misiniz?")
@@ -99,7 +101,7 @@ const ProfileImageUpload = ({
     try {
       await api.delete("/api/upload/profile-image");
       toast.success("Profil fotoğrafı silindi");
-      onImageChange("");
+      onImageChange && onImageChange("");
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Fotoğraf silinirken hata oluştu");
