@@ -10,13 +10,7 @@ const ProductForm = () => {
   const { user } = useAuth();
   const isEdit = Boolean(id);
 
-  // Admin kontrolü
-  useEffect(() => {
-    if (user && user.role !== "admin") {
-      toast.error("Bu sayfaya erişim yetkiniz yok");
-      navigate("/");
-    }
-  }, [user, navigate]);
+  // Artık ProtectedRoute ile korunuyor, bu kontrol gerekli değil
 
   const [formData, setFormData] = useState({
     name: "",
@@ -127,19 +121,7 @@ const ProductForm = () => {
     }
   };
 
-  // Admin değilse erişim engellendi mesajı
-  if (user && user.role !== "admin") {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 mb-2">
-            Erişim Engellendi
-          </h2>
-          <p className="text-gray-600">Bu sayfaya erişim yetkiniz yok.</p>
-        </div>
-      </div>
-    );
-  }
+  // Artık ProtectedRoute ile korunuyor, bu kontrol gerekli değil
 
   if (loading && isEdit) {
     return (

@@ -35,8 +35,7 @@ export const AuthProvider = ({ children }) => {
         if (!mounted) return;
         setUser(data.data?.user || data.user);
       } catch (err) {
-        // Geçersiz token ise temizle
-
+        // Geçersiz token veya onay bekleyen kullanıcı ise temizle
         setToken(null);
         setUser(null);
       } finally {
@@ -52,10 +51,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const { data } = await api.post("/api/auth/login", { email, password });
+      const userData = data.data?.user || data.user;
       setToken(data.data?.token || data.token);
-      setUser(data.data?.user || data.user);
+      setUser(userData);
       toast.success("Başarıyla giriş yapıldı!");
-      return { ok: true };
+      return { ok: true, user: userData };
     } catch (err) {
       const message = err.response?.data?.message || "Giriş başarısız";
       toast.error(message);
@@ -84,6 +84,8 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     toast.success("Başarıyla çıkış yapıldı");
+    // Çıkış yapıldıktan sonra login sayfasına yönlendir
+    window.location.href = "/login";
   };
 
   const updateUser = (updatedUser) => {

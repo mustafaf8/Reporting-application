@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
   address: { type: String, default: "" },
   bio: { type: String, default: "" },
   isActive: { type: Boolean, default: true },
+  isApproved: { type: Boolean, default: false }, // Admin onayı gerekli
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

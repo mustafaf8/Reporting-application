@@ -26,9 +26,16 @@ const ProductsListPage = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (searchTerm) params.append("q", searchTerm);
-      if (categoryFilter) params.append("category", categoryFilter);
-      if (statusFilter) params.append("isActive", statusFilter);
+
+      // Admin ise tüm filtreleri kullan, normal kullanıcı ise sadece aktif ürünleri getir
+      if (user?.role === "admin") {
+        if (searchTerm) params.append("q", searchTerm);
+        if (categoryFilter) params.append("category", categoryFilter);
+        if (statusFilter) params.append("isActive", statusFilter);
+      } else {
+        // Normal kullanıcılar için sadece aktif ürünleri getir
+        params.append("isActive", "true");
+      }
 
       const { data } = await api.get(`/api/products?${params.toString()}`);
       setProducts(data.items || []);
@@ -112,9 +119,16 @@ const ProductsListPage = () => {
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {user?.role === "admin" ? "Ürün Yönetimi" : "Ürün Listesi"}
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {user?.role === "admin" ? "Ürün Yönetimi" : "Ürün Listesi"}
+            </h2>
+            {user?.role !== "admin" && (
+              <p className="text-sm text-gray-600 mt-1">
+                Sadece aktif ürünler gösterilmektedir
+              </p>
+            )}
+          </div>
           {user?.role === "admin" && (
             <Link
               to="/products/create"
@@ -127,54 +141,56 @@ const ProductsListPage = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ürün Adı ile Ara
-            </label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Ürün adı girin..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Kategori Filtresi
-            </label>
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="">Tüm Kategoriler</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Durum Filtresi
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="">Tüm Durumlar</option>
-              <option value="true">Aktif</option>
-              <option value="false">Pasif</option>
-            </select>
+      {/* Filters - Sadece Admin için */}
+      {user?.role === "admin" && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ürün Adı ile Ara
+              </label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Ürün adı girin..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Kategori Filtresi
+              </label>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">Tüm Kategoriler</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Durum Filtresi
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value="">Tüm Durumlar</option>
+                <option value="true">Aktif</option>
+                <option value="false">Pasif</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Products Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">

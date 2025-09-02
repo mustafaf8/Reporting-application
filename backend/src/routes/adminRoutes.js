@@ -135,6 +135,47 @@ router.put("/users/:id/status", async (req, res) => {
   }
 });
 
+// Kullanıcı onaylama/reddetme
+router.put("/users/:id/approve", async (req, res) => {
+  try {
+    const { isApproved } = req.body;
+
+    // Kendi onayını değiştirmeye çalışıyorsa engelle
+    if (req.params.id === req.user.id) {
+      return res
+        .status(400)
+        .json({ message: "Kendi onayınızı değiştiremezsiniz" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { isApproved, updatedAt: new Date() },
+      { new: true }
+    ).select("-passwordHash");
+
+    if (!user) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    logger.business("Admin updated user approval", {
+      adminId: req.user.id,
+      targetUserId: req.params.id,
+      newApprovalStatus: isApproved,
+      userEmail: user.email,
+    });
+
+    return res.json(user);
+  } catch (err) {
+    logger.error("Admin approval update error:", {
+      error: err.message,
+      adminId: req.user.id,
+    });
+    return res
+      .status(500)
+      .json({ message: "Onay durumu güncellenemedi", error: err.message });
+  }
+});
+
 // Tüm teklifleri görüntüleme
 router.get("/proposals", async (req, res) => {
   try {
@@ -225,6 +266,8 @@ router.get("/stats", async (req, res) => {
     const [
       totalUsers,
       activeUsers,
+      approvedUsers,
+      pendingUsers,
       totalProposals,
       approvedProposals,
       totalProducts,
@@ -233,6 +276,8 @@ router.get("/stats", async (req, res) => {
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ isActive: true }),
+      User.countDocuments({ isApproved: true }),
+      User.countDocuments({ isApproved: false }),
       Proposal.countDocuments(),
       Proposal.countDocuments({ status: "approved" }),
       Product.countDocuments(),
@@ -253,6 +298,8 @@ router.get("/stats", async (req, res) => {
       users: {
         total: totalUsers,
         active: activeUsers,
+        approved: approvedUsers,
+        pending: pendingUsers,
       },
       proposals: {
         total: totalProposals,
