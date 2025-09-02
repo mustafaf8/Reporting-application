@@ -17,7 +17,7 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get("/admin/stats");
+      const response = await api.get("/api/admin/stats");
       setStats(response.data);
     } catch (error) {
       toast.error("İstatistikler yüklenirken hata oluştu");

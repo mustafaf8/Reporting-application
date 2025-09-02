@@ -24,13 +24,6 @@ const ProfileImageUpload = ({
     xl: "w-44 h-44",
   };
 
-  const iconSizes = {
-    sm: "w-6 h-6",
-    md: "w-8 h-8",
-    lg: "w-12 h-12",
-    xl: "w-16 h-16",
-  };
-
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -129,7 +122,6 @@ const ProfileImageUpload = ({
               ? "3xl"
               : "2xl"
           }
-          className="border-4 border-white shadow-lg"
         />
 
         {/* Hover Overlay */}

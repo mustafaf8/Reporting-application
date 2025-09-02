@@ -21,7 +21,7 @@ const AdminProductsList = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/admin/products", {
+      const response = await api.get("/api/admin/products", {
         params: {
           page: currentPage,
           limit: 20,
