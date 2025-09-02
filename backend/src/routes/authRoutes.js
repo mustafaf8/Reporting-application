@@ -66,6 +66,19 @@ router.post("/login", validate(schemas.login), async (req, res) => {
       return res.error("Geçersiz kimlik bilgileri", 401);
     }
 
+    // Kullanıcı onay bekliyor mu kontrol et
+    if (!user.isApproved) {
+      logger.security("Login attempt by unapproved user", {
+        ip: req.ip,
+        email,
+        userId: user._id,
+      });
+      return res.error(
+        "Hesabınız henüz onaylanmamış. Lütfen yöneticinizle iletişime geçin.",
+        403
+      );
+    }
+
     const token = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET || "dev_secret",
@@ -102,14 +115,26 @@ router.post("/login", validate(schemas.login), async (req, res) => {
 // Kullanıcı bilgisini dönen endpoint (token ile)
 router.get("/me", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("_id name email role");
+    const user = await User.findById(req.user.id).select(
+      "_id name email role isApproved"
+    );
     if (!user) return res.error("Kullanıcı bulunamadı", 404);
+
+    // Kullanıcı onay bekliyor mu kontrol et
+    if (!user.isApproved) {
+      return res.error(
+        "Hesabınız henüz onaylanmamış. Lütfen yöneticinizle iletişime geçin.",
+        403
+      );
+    }
+
     return res.success({
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
+        isApproved: user.isApproved,
       },
     });
   } catch (err) {

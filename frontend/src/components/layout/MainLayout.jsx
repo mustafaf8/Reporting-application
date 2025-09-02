@@ -81,7 +81,7 @@ const MainLayout = () => {
                   </Link>
                 </>
               )}
-              {user && user.role === "admin" && (
+              {user && (
                 <Link
                   to="/products"
                   className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
@@ -99,7 +99,7 @@ const MainLayout = () => {
                       d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
                     />
                   </svg>
-                  Ürün Yönetimi
+                  {user.role === "admin" ? "Ürün Yönetimi" : "Ürünler"}
                 </Link>
               )}
               {user && (
@@ -281,7 +281,7 @@ const MainLayout = () => {
                     </Link>
                   </>
                 )}
-                {user && user.role === "admin" && (
+                {user && (
                   <Link
                     to="/products"
                     className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
@@ -300,7 +300,7 @@ const MainLayout = () => {
                         d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
                       />
                     </svg>
-                    Ürün Yönetimi
+                    {user.role === "admin" ? "Ürün Yönetimi" : "Ürünler"}
                   </Link>
                 )}
                 {user && (
