@@ -21,7 +21,7 @@ const UsersManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/admin/users", {
+      const response = await api.get("/api/admin/users", {
         params: {
           page: currentPage,
           limit: 20,
@@ -39,7 +39,7 @@ const UsersManagement = () => {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
-      await api.put(`/admin/users/${userId}/role`, { role: newRole });
+      await api.put(`/api/admin/users/${userId}/role`, { role: newRole });
       toast.success("Kullanıcı rolü güncellendi");
       fetchUsers();
     } catch (error) {
@@ -49,7 +49,7 @@ const UsersManagement = () => {
 
   const handleStatusChange = async (userId, isActive) => {
     try {
-      await api.put(`/admin/users/${userId}/status`, { isActive });
+      await api.put(`/api/admin/users/${userId}/status`, { isActive });
       toast.success("Kullanıcı durumu güncellendi");
       fetchUsers();
     } catch (error) {

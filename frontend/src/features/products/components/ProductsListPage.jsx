@@ -4,8 +4,10 @@ import api from "../../../services/api";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 import EmptyState from "../../../components/ui/EmptyState";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 const ProductsListPage = () => {
+  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -110,14 +112,18 @@ const ProductsListPage = () => {
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h2 className="text-2xl font-bold text-gray-900">Ürün Yönetimi</h2>
-          <Link
-            to="/products/create"
-            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            <span className="mr-2">+</span>
-            Yeni Ürün Ekle
-          </Link>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {user?.role === "admin" ? "Ürün Yönetimi" : "Ürün Listesi"}
+          </h2>
+          {user?.role === "admin" && (
+            <Link
+              to="/products/create"
+              className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <span className="mr-2">+</span>
+              Yeni Ürün Ekle
+            </Link>
+          )}
         </div>
       </div>
 
@@ -192,13 +198,15 @@ const ProductsListPage = () => {
             title="Henüz ürün bulunmuyor"
             description="İlk ürününüzü eklemek için aşağıdaki butonu kullanın."
             action={
-              <Link
-                to="/products/create"
-                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                <span className="mr-2">+</span>
-                Ürün Ekle
-              </Link>
+              user?.role === "admin" ? (
+                <Link
+                  to="/products/create"
+                  className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  <span className="mr-2">+</span>
+                  Ürün Ekle
+                </Link>
+              ) : null
             }
           />
         ) : (
@@ -218,15 +226,19 @@ const ProductsListPage = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fiyat
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Durum
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Oluşturan
-                  </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    İşlemler
-                  </th>
+                  {user?.role === "admin" && (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Durum
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Oluşturan
+                      </th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        İşlemler
+                      </th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -254,42 +266,48 @@ const ProductsListPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {product.unitPrice.toLocaleString("tr-TR")} ₺
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() =>
-                          toggleStatus(product._id, product.isActive)
-                        }
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          product.isActive
-                            ? "bg-green-100 text-green-800 hover:bg-green-200"
-                            : "bg-red-100 text-red-800 hover:bg-red-200"
-                        } transition-colors`}
-                      >
-                        {product.isActive ? "Aktif" : "Pasif"}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.createdBy?.name || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex justify-center space-x-2">
-                        <Link
-                          to={`/products/${product._id}/edit`}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
-                        >
-                          Düzenle
-                        </Link>
-                        <button
-                          onClick={() =>
-                            handleDelete(product._id, product.name)
-                          }
-                          disabled={deletingId === product._id}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 transition-colors disabled:opacity-50"
-                        >
-                          {deletingId === product._id ? "Siliniyor..." : "Sil"}
-                        </button>
-                      </div>
-                    </td>
+                    {user?.role === "admin" && (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() =>
+                              toggleStatus(product._id, product.isActive)
+                            }
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              product.isActive
+                                ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                : "bg-red-100 text-red-800 hover:bg-red-200"
+                            } transition-colors`}
+                          >
+                            {product.isActive ? "Aktif" : "Pasif"}
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {product.createdBy?.name || "-"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex justify-center space-x-2">
+                            <Link
+                              to={`/products/${product._id}/edit`}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
+                            >
+                              Düzenle
+                            </Link>
+                            <button
+                              onClick={() =>
+                                handleDelete(product._id, product.name)
+                              }
+                              disabled={deletingId === product._id}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 transition-colors disabled:opacity-50"
+                            >
+                              {deletingId === product._id
+                                ? "Siliniyor..."
+                                : "Sil"}
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))}
               </tbody>

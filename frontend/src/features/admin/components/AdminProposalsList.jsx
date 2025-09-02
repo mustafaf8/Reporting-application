@@ -22,7 +22,7 @@ const AdminProposalsList = () => {
   const fetchProposals = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/admin/proposals", {
+      const response = await api.get("/api/admin/proposals", {
         params: {
           page: currentPage,
           limit: 20,
