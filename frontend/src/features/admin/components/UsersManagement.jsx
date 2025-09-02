@@ -57,6 +57,16 @@ const UsersManagement = () => {
     }
   };
 
+  const handleApprovalChange = async (userId, isApproved) => {
+    try {
+      await api.put(`/api/admin/users/${userId}/approve`, { isApproved });
+      toast.success(`Kullanıcı ${isApproved ? "onaylandı" : "reddedildi"}`);
+      fetchUsers();
+    } catch (error) {
+      toast.error("Onay durumu güncellenirken hata oluştu");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -100,6 +110,9 @@ const UsersManagement = () => {
                   Durum
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Onay
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Kayıt Tarihi
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -140,23 +153,52 @@ const UsersManagement = () => {
                       {user.isActive ? "Aktif" : "Pasif"}
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        user.isApproved
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {user.isApproved ? "Onaylı" : "Bekliyor"}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.createdAt).toLocaleDateString("tr-TR")}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() =>
-                        handleStatusChange(user._id, !user.isActive)
-                      }
-                      disabled={user._id === user._id} // Kendi durumunu değiştiremez
-                      className={`mr-2 px-3 py-1 text-xs font-medium rounded-full ${
-                        user.isActive
-                          ? "bg-red-100 text-red-800 hover:bg-red-200"
-                          : "bg-green-100 text-green-800 hover:bg-green-200"
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    >
-                      {user.isActive ? "Pasif Yap" : "Aktif Yap"}
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() =>
+                          handleStatusChange(user._id, !user.isActive)
+                        }
+                        disabled={user._id === user._id} // Kendi durumunu değiştiremez
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${
+                          user.isActive
+                            ? "bg-red-100 text-red-800 hover:bg-red-200"
+                            : "bg-green-100 text-green-800 hover:bg-green-200"
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      >
+                        {user.isActive ? "Pasif Yap" : "Aktif Yap"}
+                      </button>
+                      {!user.isApproved && (
+                        <button
+                          onClick={() => handleApprovalChange(user._id, true)}
+                          className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 hover:bg-green-200"
+                        >
+                          Onayla
+                        </button>
+                      )}
+                      {user.isApproved && (
+                        <button
+                          onClick={() => handleApprovalChange(user._id, false)}
+                          className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                        >
+                          Reddet
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

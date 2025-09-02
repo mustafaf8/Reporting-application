@@ -50,6 +50,9 @@ const LoginPage = () => {
       } else {
         const res = await register(name, email, password);
         if (res.ok) {
+          // Kayıt olan kullanıcının bilgilerini localStorage'a kaydet
+          localStorage.setItem("pendingUserEmail", email);
+          localStorage.setItem("pendingUserPassword", password);
           // Kayıt olan kullanıcılar onay bekleyen sayfaya yönlendirilir
           navigate("/pending-approval", { replace: true });
         } else {
@@ -71,6 +74,13 @@ const LoginPage = () => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     resetForm();
+  };
+
+  const clearToken = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("pendingUserEmail");
+    localStorage.removeItem("pendingUserPassword");
+    window.location.reload();
   };
 
   // Authentication durumu yükleniyor
@@ -183,6 +193,16 @@ const LoginPage = () => {
               : "Kayıt Ol"}
           </button>
         </form>
+
+        {/* Token Temizleme Butonu */}
+        <div className="mt-4 text-center">
+          <button
+            onClick={clearToken}
+            className="text-xs text-gray-500 hover:text-gray-700 underline"
+          >
+            Oturum Bilgilerini Temizle
+          </button>
+        </div>
 
         <div className="mt-6 text-center">
           <button

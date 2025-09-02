@@ -78,6 +78,11 @@ const AdminDashboard = () => {
                 <p className="text-sm text-blue-500">
                   {stats.users.active} aktif
                 </p>
+                {stats.users.pending > 0 && (
+                  <p className="text-sm text-yellow-600 font-medium">
+                    {stats.users.pending} onay bekliyor
+                  </p>
+                )}
               </div>
             </div>
           </div>
