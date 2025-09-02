@@ -54,6 +54,9 @@ export const AuthProvider = ({ children }) => {
       const userData = data.data?.user || data.user;
       setToken(data.data?.token || data.token);
       setUser(userData);
+      // Başarılı giriş sonrası pending user bilgilerini temizle
+      localStorage.removeItem("pendingUserEmail");
+      localStorage.removeItem("pendingUserPassword");
       toast.success("Başarıyla giriş yapıldı!");
       return { ok: true, user: userData };
     } catch (err) {
@@ -69,8 +72,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       await api.post("/api/auth/register", { name, email, password });
-      toast.success("Kullanıcı başarıyla kayıt edildi!");
-      return login(email, password);
+      toast.success("Kullanıcı başarıyla kayıt edildi! Onay bekleniyor...");
+      return { ok: true, message: "Kayıt başarılı, onay bekleniyor" };
     } catch (err) {
       const message = err.response?.data?.message || "Kayıt başarısız";
       toast.error(message);

@@ -1,8 +1,48 @@
-import React from "react";
+import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const PendingApprovalPage = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
+  const navigate = useNavigate();
+  const [checking, setChecking] = useState(false);
+
+  const checkApprovalStatus = async () => {
+    setChecking(true);
+    try {
+      // Kullanıcının email'ini localStorage'dan al (kayıt sırasında saklanmış olabilir)
+      const storedEmail = localStorage.getItem("pendingUserEmail");
+      if (!storedEmail) {
+        toast.error("E-posta bilgisi bulunamadı. Lütfen tekrar giriş yapın.");
+        navigate("/login");
+        return;
+      }
+
+      // Kullanıcıya giriş yapmayı dene
+      const result = await login(
+        storedEmail,
+        localStorage.getItem("pendingUserPassword") || ""
+      );
+
+      if (result.ok) {
+        toast.success("Hesabınız onaylandı! Hoş geldiniz!");
+        // Admin ise admin sayfasına, değilse ana sayfaya yönlendir
+        if (result.user?.role === "admin") {
+          navigate("/admin", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
+      } else {
+        // Hala onay bekliyor
+        toast.info("Hesabınız henüz onaylanmamış. Lütfen bekleyin.");
+      }
+    } catch (error) {
+      toast.error("Durum kontrol edilirken hata oluştu");
+    } finally {
+      setChecking(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
@@ -112,10 +152,11 @@ const PendingApprovalPage = () => {
 
         {/* Yenile Butonu */}
         <button
-          onClick={() => window.location.reload()}
-          className="w-full mt-3 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+          onClick={checkApprovalStatus}
+          disabled={checking}
+          className="w-full mt-3 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Durumu Kontrol Et
+          {checking ? "Kontrol Ediliyor..." : "Durumu Kontrol Et"}
         </button>
       </div>
     </div>
