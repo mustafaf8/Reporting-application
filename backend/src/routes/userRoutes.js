@@ -25,23 +25,34 @@ router.get("/:id/profile-image", async (req, res) => {
 
 // Kullanıcı profili endpoint'i (Redis cache ile)
 const { createClient } = require("redis");
-const redisClient = createClient({
-  url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
-});
-redisClient.on("error", (err) =>
-  logger.error("Redis error", { error: err.message })
-);
-(async () => {
-  try {
-    await redisClient.connect();
-  } catch (e) {}
-})();
+const USE_REDIS = process.env.USE_REDIS === "true";
+let redisClient = null;
+if (USE_REDIS) {
+  redisClient = createClient({
+    url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+  });
+  redisClient.on("error", (err) =>
+    logger.error("Redis error", { error: err.message })
+  );
+  (async () => {
+    try {
+      await redisClient.connect();
+    } catch (e) {
+      // Redis opsiyonel; bağlanamazsa cache devre dışı kalır
+    }
+  })();
+}
+const isRedisReady = () => USE_REDIS && redisClient?.isReady === true;
 
 router.get("/me/profile", auth, async (req, res) => {
   try {
     const cacheKey = `users:me:profile:${req.user.id}`;
-    const cached = await redisClient.get(cacheKey);
-    if (cached) return res.json(JSON.parse(cached));
+    if (isRedisReady()) {
+      try {
+        const cached = await redisClient.get(cacheKey);
+        if (cached) return res.json(JSON.parse(cached));
+      } catch (_) {}
+    }
 
     // Kullanıcı bilgilerini getir
     const user = await User.findById(req.user.id).select("-passwordHash");
@@ -58,7 +69,11 @@ router.get("/me/profile", auth, async (req, res) => {
       user,
       proposals,
     };
-    await redisClient.set(cacheKey, JSON.stringify(payload), { EX: 60 });
+    if (isRedisReady()) {
+      try {
+        await redisClient.set(cacheKey, JSON.stringify(payload), { EX: 60 });
+      } catch (_) {}
+    }
     return res.json(payload);
   } catch (error) {
     console.error("Profile endpoint error:", error);
@@ -149,8 +164,10 @@ router.put(
 
       // Cache invalidation
       try {
-        const cacheKey = `users:me:profile:${req.user.id}`;
-        await redisClient.del(cacheKey);
+        if (isRedisReady()) {
+          const cacheKey = `users:me:profile:${req.user.id}`;
+          await redisClient.del(cacheKey);
+        }
       } catch (_) {}
 
       return res.json(updatedUser);

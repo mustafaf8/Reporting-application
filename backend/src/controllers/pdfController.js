@@ -32,9 +32,16 @@ function readImageAsDataUrl(filename) {
 const { Queue } = require("bullmq");
 const IORedis = require("ioredis");
 
-const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
-const connection = new IORedis(REDIS_URL);
-const pdfQueue = new Queue("pdf-generation", { connection });
+const USE_REDIS = process.env.USE_REDIS === "true";
+let pdfQueue = null;
+function getQueue() {
+  if (!USE_REDIS) return null;
+  if (pdfQueue) return pdfQueue;
+  const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+  const connection = new IORedis(REDIS_URL);
+  pdfQueue = new Queue("pdf-generation", { connection });
+  return pdfQueue;
+}
 
 async function generateProposalPdf(req, res) {
   try {
@@ -50,7 +57,14 @@ async function generateProposalPdf(req, res) {
       );
     }
 
-    const job = await pdfQueue.add(
+    const queue = getQueue();
+    if (!queue) {
+      return res
+        .status(202)
+        .json({ message: "PDF kuyruğu devre dışı (Redis kapalı)." });
+    }
+
+    const job = await queue.add(
       "generate",
       { payload, proposalId: payload.proposalId },
       { removeOnComplete: true, removeOnFail: true }
