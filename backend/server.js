@@ -22,6 +22,7 @@ const userRoutes = require("./src/routes/userRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
 const uploadRoutes = require("./src/routes/uploadRoutes");
 const templateRoutes = require("./src/routes/templateRoutes");
+const billingRoutes = require("./src/routes/billingRoutes");
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(
     credentials: true,
   })
 );
+// Stripe webhook için raw body gerekir; route özelinde ele alındı.
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(morgan("combined", { stream: logger.stream }));
@@ -70,6 +72,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/templates", templateRoutes);
+app.use("/api/billing", billingRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

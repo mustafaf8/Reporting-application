@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../services/api";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import toast from "react-hot-toast";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 const ProposalDetailPage = () => {
   const { id } = useParams();
@@ -13,6 +14,7 @@ const ProposalDetailPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pdfProcessing, setPdfProcessing] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -60,7 +62,11 @@ const ProposalDetailPage = () => {
         status: proposal.status,
         customizations: proposal.customizations || {},
       };
-      const res = await api.post("/api/generate-pdf", payload);
+      const endpoint =
+        (user?.subscription?.plan || "free") === "pro"
+          ? "/api/generate-pdf-hq"
+          : "/api/generate-pdf";
+      const res = await api.post(endpoint, payload);
       if (res.status === 202) {
         toast.success(
           "Teklifiniz hazırlanıyor. Tamamlandığında bildirim alacaksınız."

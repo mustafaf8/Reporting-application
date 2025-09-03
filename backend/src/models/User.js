@@ -22,6 +22,14 @@ const userSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   // Yeni kayıt akışında otomatik onay: varsayılan true
   isApproved: { type: Boolean, default: true },
+  // Abonelik bilgileri
+  subscription: {
+    plan: { type: String, default: "free" },
+    status: { type: String, default: "inactive" },
+    customerId: { type: String, default: "" },
+    subscriptionId: { type: String, default: "" },
+    currentPeriodEnd: { type: Date },
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
