@@ -62,10 +62,12 @@ const UsersManagement = () => {
   const handleApprovalChange = async (userId, isApproved) => {
     try {
       await api.put(`/api/admin/users/${userId}/approve`, { isApproved });
-      toast.success(`Kullanıcı ${isApproved ? "onaylandı" : "reddedildi"}`);
+      toast.success(
+        isApproved ? "Hesap tekrar aktifleştirildi" : "Hesap askıya alındı"
+      );
       fetchUsers();
     } catch (error) {
-      toast.error("Onay durumu güncellenirken hata oluştu");
+      toast.error("Hesap durumu güncellenirken hata oluştu");
     }
   };
 
@@ -195,7 +197,7 @@ const UsersManagement = () => {
                               }
                               className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 hover:bg-green-200"
                             >
-                              Onayla
+                              Aktif Et
                             </button>
                           )}
                           {user.isApproved && (
@@ -205,7 +207,7 @@ const UsersManagement = () => {
                               }
                               className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
                             >
-                              Reddet
+                              Askıya Al
                             </button>
                           )}
                         </>

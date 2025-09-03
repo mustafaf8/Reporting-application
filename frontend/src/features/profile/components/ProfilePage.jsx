@@ -32,6 +32,7 @@ const ProfilePage = () => {
         // Edit form için başlangıç değerlerini ayarla
         setEditForm({
           name: profileResponse.data.user.name || "",
+          // Kurumsal alanlar isteğe bağlı
           position: profileResponse.data.user.position || "",
           department: profileResponse.data.user.department || "",
           company: profileResponse.data.user.company || "",
@@ -255,7 +256,7 @@ const ProfilePage = () => {
               {profileData?.user?.position && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Pozisyon
+                    Pozisyon (isteğe bağlı)
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {profileData.user.position}
@@ -265,7 +266,7 @@ const ProfilePage = () => {
               {profileData?.user?.department && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Departman
+                    Departman (isteğe bağlı)
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {profileData.user.department}
@@ -275,7 +276,7 @@ const ProfilePage = () => {
               {profileData?.user?.company && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Şirket
+                    Şirket (isteğe bağlı)
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
                     {profileData.user.company}
@@ -344,7 +345,7 @@ const ProfilePage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Pozisyon
+                  Pozisyon (isteğe bağlı)
                 </label>
                 <input
                   type="text"
@@ -357,7 +358,7 @@ const ProfilePage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Departman
+                  Departman (isteğe bağlı)
                 </label>
                 <input
                   type="text"
@@ -370,7 +371,7 @@ const ProfilePage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Şirket
+                  Şirket (isteğe bağlı)
                 </label>
                 <input
                   type="text"

@@ -135,7 +135,8 @@ router.put("/users/:id/status", async (req, res) => {
   }
 });
 
-// Kullanıcı onaylama/reddetme
+// Süper Admin aksiyonu: Kullanıcıyı askıya alma/aktif etme (approve endpoint'i yeniden amaçlandırıldı)
+// Yeni kayıt akışında kullanıcılar otomatik onaylanır; bu endpoint artık ban/unsuspend için kullanılabilir.
 router.put("/users/:id/approve", async (req, res) => {
   try {
     const { isApproved } = req.body;
@@ -147,11 +148,15 @@ router.put("/users/:id/approve", async (req, res) => {
         .json({ message: "Kendi onayınızı değiştiremezsiniz" });
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { isApproved, updatedAt: new Date() },
-      { new: true }
-    ).select("-passwordHash");
+    // Eğer isApproved false'a çekiliyorsa, hesabı pasifleştirerek etkisini artır
+    const update = { isApproved, updatedAt: new Date() };
+    if (isApproved === false) {
+      update.isActive = false;
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, update, {
+      new: true,
+    }).select("-passwordHash");
 
     if (!user) {
       return res.status(404).json({ message: "Kullanıcı bulunamadı" });

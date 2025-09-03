@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     enum: ["admin", "user"],
     default: "user",
   },
+  // Kurumsal alanlar (artık birincil değil, isteğe bağlı/deprecated)
   position: { type: String, default: "" },
   // Cloudinary ile saklanan profil resmi
   profileImageUrl: { type: String, default: "" },
@@ -19,7 +20,8 @@ const userSchema = new mongoose.Schema({
   address: { type: String, default: "" },
   bio: { type: String, default: "" },
   isActive: { type: Boolean, default: true },
-  isApproved: { type: Boolean, default: false }, // Admin onayı gerekli
+  // Yeni kayıt akışında otomatik onay: varsayılan true
+  isApproved: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

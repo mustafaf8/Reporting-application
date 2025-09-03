@@ -45,6 +45,12 @@ router.get(
 router.get("/:id", auth, async (req, res) => {
   try {
     const proposal = await proposalService.getProposalById(req.params.id);
+    // Sahiplik kontrolü: yalnızca kendi teklifine erişebilir
+    if (proposal.owner && String(proposal.owner) !== String(req.user.id)) {
+      return res
+        .status(403)
+        .json({ message: "Bu kaynağa erişim yetkiniz yok" });
+    }
     return res.json(proposal);
   } catch (err) {
     return res.status(404).json({ message: err.message });
@@ -54,6 +60,13 @@ router.get("/:id", auth, async (req, res) => {
 // Update
 router.put("/:id", auth, validate(schemas.updateProposal), async (req, res) => {
   try {
+    // Sahiplik kontrolü
+    const existing = await proposalService.getProposalById(req.params.id);
+    if (existing.owner && String(existing.owner) !== String(req.user.id)) {
+      return res
+        .status(403)
+        .json({ message: "Bu kaynağı güncelleme yetkiniz yok" });
+    }
     const proposal = await proposalService.updateProposal(
       req.params.id,
       req.body
@@ -74,6 +87,13 @@ router.patch(
   async (req, res) => {
     try {
       const { status } = req.body;
+      // Sahiplik kontrolü
+      const existing = await proposalService.getProposalById(req.params.id);
+      if (existing.owner && String(existing.owner) !== String(req.user.id)) {
+        return res
+          .status(403)
+          .json({ message: "Bu kaynağı güncelleme yetkiniz yok" });
+      }
 
       const proposal = await proposalService.updateProposalStatus(
         req.params.id,
@@ -91,6 +111,11 @@ router.patch(
 // Delete
 router.delete("/:id", auth, async (req, res) => {
   try {
+    // Sahiplik kontrolü
+    const existing = await proposalService.getProposalById(req.params.id);
+    if (existing.owner && String(existing.owner) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Bu kaynağı silme yetkiniz yok" });
+    }
     const result = await proposalService.deleteProposal(req.params.id);
     return res.json(result);
   } catch (err) {

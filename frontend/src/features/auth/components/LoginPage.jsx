@@ -40,21 +40,22 @@ const LoginPage = () => {
             navigate(from, { replace: true });
           }
         } else {
-          // Onay bekleyen kullanıcı kontrolü
-          if (res.message && res.message.includes("onaylanmamış")) {
-            navigate("/pending-approval", { replace: true });
-          } else {
-            setError(res.message || "Giriş başarısız");
-          }
+          setError(res.message || "Giriş başarısız");
         }
       } else {
         const res = await register(name, email, password);
         if (res.ok) {
-          // Kayıt olan kullanıcının bilgilerini localStorage'a kaydet
-          localStorage.setItem("pendingUserEmail", email);
-          localStorage.setItem("pendingUserPassword", password);
-          // Kayıt olan kullanıcılar onay bekleyen sayfaya yönlendirilir
-          navigate("/pending-approval", { replace: true });
+          // Yeni akış: otomatik onay varsayımıyla kayıt sonrası otomatik giriş
+          const loginRes = await login(email, password);
+          if (loginRes.ok) {
+            if (loginRes.user?.role === "admin") {
+              navigate("/admin", { replace: true });
+            } else {
+              navigate("/", { replace: true });
+            }
+          } else {
+            setError(loginRes.message || "Otomatik giriş başarısız");
+          }
         } else {
           setError(res.message || "Kayıt başarısız");
         }
