@@ -16,6 +16,8 @@ import AdminDashboard from "./features/admin/components/AdminDashboard";
 import UsersManagement from "./features/admin/components/UsersManagement";
 import AdminProposalsList from "./features/admin/components/AdminProposalsList";
 import AdminProductsList from "./features/admin/components/AdminProductsList";
+import TemplateGalleryPage from "./features/templates/components/TemplateGalleryPage";
+import ProposalEditor from "./features/editor/components/ProposalEditor";
 
 // Gelecekte eklenebilecek diğer sayfalar için bir örnek
 const NotFoundPage = () => (
@@ -58,6 +60,8 @@ function App() {
         >
           {/* index=true, path="/" ile aynı anlama gelir. Ana sayfadır. */}
           <Route index element={<ProposalFormWithProducts />} />
+          <Route path="templates" element={<TemplateGalleryPage />} />
+          <Route path="editor" element={<ProposalEditor />} />
           <Route path="proposals" element={<ProposalsListPage />} />
           <Route path="proposals/:id" element={<ProposalDetailPage />} />
           <Route path="proposals/:id/edit" element={<EditProposalPage />} />
