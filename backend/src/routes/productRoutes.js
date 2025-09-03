@@ -5,6 +5,18 @@ const logger = require("../config/logger");
 const { validate, schemas } = require("../middleware/validation");
 
 const router = express.Router();
+const { createClient } = require("redis");
+const redisClient = createClient({
+  url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+});
+redisClient.on("error", (err) =>
+  logger.error("Redis error", { error: err.message })
+);
+(async () => {
+  try {
+    await redisClient.connect();
+  } catch (e) {}
+})();
 
 // Create
 router.post("/", auth, validate(schemas.createProduct), async (req, res) => {
@@ -46,6 +58,14 @@ router.get(
       if (category) filter.category = category;
       if (isActive !== undefined) filter.isActive = isActive === "true";
 
+      const cacheKey = `products:list:${req.user.id}:${q || ""}:${
+        category || ""
+      }:${isActive || "all"}:${page}:${limit}`;
+      const cached = await redisClient.get(cacheKey);
+      if (cached) {
+        return res.json(JSON.parse(cached));
+      }
+
       const skip = (Number(page) - 1) * Number(limit);
       const [items, total] = await Promise.all([
         Product.find(filter)
@@ -56,12 +76,14 @@ router.get(
         Product.countDocuments(filter),
       ]);
 
-      return res.json({
+      const payload = {
         items,
         total,
         page: Number(page),
         limit: Number(limit),
-      });
+      };
+      await redisClient.set(cacheKey, JSON.stringify(payload), { EX: 60 });
+      return res.json(payload);
     } catch (err) {
       logger.error("Product list error:", {
         error: err.message,
@@ -178,9 +200,15 @@ router.delete("/:id", auth, async (req, res) => {
 // Get categories
 router.get("/categories/list", auth, async (req, res) => {
   try {
+    const cacheKey = `products:categories:${req.user.id}`;
+    const cached = await redisClient.get(cacheKey);
+    if (cached) return res.json(JSON.parse(cached));
+
     const categories = await Product.distinct("category", {
       category: { $ne: null, $ne: "" },
+      createdBy: req.user.id,
     });
+    await redisClient.set(cacheKey, JSON.stringify(categories), { EX: 300 });
     return res.json(categories);
   } catch (err) {
     logger.error("Categories list error:", {

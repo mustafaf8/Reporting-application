@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../services/api";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
+import toast from "react-hot-toast";
 
 const ProposalDetailPage = () => {
   const { id } = useParams();
@@ -11,6 +12,7 @@ const ProposalDetailPage = () => {
   const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [pdfProcessing, setPdfProcessing] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -45,6 +47,39 @@ const ProposalDetailPage = () => {
     setShowDeleteModal(false);
   };
 
+  const handleGeneratePdf = async () => {
+    try {
+      setPdfProcessing(true);
+      const payload = {
+        proposalId: proposal._id,
+        customerName: proposal.customerName,
+        items: proposal.items,
+        vatRate: proposal.vatRate,
+        discountRate: proposal.discountRate,
+        extraCosts: proposal.extraCosts,
+        status: proposal.status,
+        customizations: proposal.customizations || {},
+      };
+      const res = await api.post("/api/generate-pdf", payload);
+      if (res.status === 202) {
+        toast.success(
+          "Teklifiniz hazırlanıyor. Tamamlandığında bildirim alacaksınız."
+        );
+        setProposal((prev) => ({
+          ...prev,
+          customizations: {
+            ...(prev.customizations || {}),
+            pdfStatus: "processing",
+          },
+        }));
+      }
+    } catch (err) {
+      toast.error("PDF kuyruğa eklenemedi");
+    } finally {
+      setPdfProcessing(false);
+    }
+  };
+
   if (loading) return <p>Yükleniyor...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
   if (!proposal) return null;
@@ -61,6 +96,13 @@ const ProposalDetailPage = () => {
           >
             {deleting ? "Siliniyor..." : "Sil"}
           </button>
+          <button
+            onClick={handleGeneratePdf}
+            disabled={pdfProcessing}
+            className="bg-slate-700 text-white px-3 py-1 rounded-md hover:bg-slate-800 disabled:opacity-50 transition-colors"
+          >
+            {pdfProcessing ? "Kuyruğa ekleniyor..." : "PDF Oluştur"}
+          </button>
         </div>
       </div>
       <div>
@@ -69,6 +111,14 @@ const ProposalDetailPage = () => {
         </p>
         <p>
           <strong>Toplam:</strong> {proposal.grandTotal?.toFixed(2)} TL
+        </p>
+        <p>
+          <strong>PDF:</strong>{" "}
+          {proposal.customizations?.pdfStatus === "ready"
+            ? "Hazır"
+            : proposal.customizations?.pdfStatus === "processing"
+            ? "Oluşturuluyor..."
+            : "-"}
         </p>
       </div>
       <div className="overflow-x-auto">
