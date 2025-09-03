@@ -4,6 +4,7 @@ import api from "../../../services/api";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 import EmptyState from "../../../components/ui/EmptyState";
+import useDebounce from "../../../hooks/useDebounce";
 import UserAvatar from "../../../components/ui/UserAvatar";
 
 const ProposalsListPage = () => {
@@ -11,6 +12,7 @@ const ProposalsListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [statusFilter, setStatusFilter] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(null);
 
@@ -19,7 +21,7 @@ const ProposalsListPage = () => {
     (async () => {
       try {
         const params = new URLSearchParams();
-        if (searchTerm) params.append("q", searchTerm);
+        if (debouncedSearch) params.append("q", debouncedSearch);
         if (statusFilter) params.append("status", statusFilter);
 
         const { data } = await api.get(`/api/proposals?${params.toString()}`);
@@ -33,7 +35,7 @@ const ProposalsListPage = () => {
     return () => {
       mounted = false;
     };
-  }, [searchTerm, statusFilter]);
+  }, [debouncedSearch, statusFilter]);
 
   const getStatusColor = (status) => {
     switch (status) {

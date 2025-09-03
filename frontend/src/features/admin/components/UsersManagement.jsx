@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import useDebounce from "../../../hooks/useDebounce";
 import { useAuth } from "../../auth/hooks/useAuth";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
@@ -9,6 +10,7 @@ const UsersManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -16,7 +18,7 @@ const UsersManagement = () => {
     if (user?.role === "admin") {
       fetchUsers();
     }
-  }, [user, currentPage, searchTerm]);
+  }, [user, currentPage, debouncedSearch]);
 
   const fetchUsers = async () => {
     try {
@@ -25,7 +27,7 @@ const UsersManagement = () => {
         params: {
           page: currentPage,
           limit: 20,
-          search: searchTerm,
+          search: debouncedSearch,
         },
       });
       setUsers(response.data.users);
@@ -130,17 +132,15 @@ const UsersManagement = () => {
                     {user.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <select
-                      value={user.role}
-                      onChange={(e) =>
-                        handleRoleChange(user._id, e.target.value)
-                      }
-                      disabled={user._id === user._id} // Kendi rolünü değiştiremez
-                      className="text-sm border-0 bg-transparent focus:ring-2 focus:ring-indigo-500 rounded"
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        user.role === "admin"
+                          ? "bg-purple-100 text-purple-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
                     >
-                      <option value="user">Kullanıcı</option>
-                      <option value="admin">Admin</option>
-                    </select>
+                      {user.role === "admin" ? "Admin" : "Kullanıcı"}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -169,34 +169,46 @@ const UsersManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() =>
-                          handleStatusChange(user._id, !user.isActive)
-                        }
-                        disabled={user._id === user._id} // Kendi durumunu değiştiremez
-                        className={`px-3 py-1 text-xs font-medium rounded-full ${
-                          user.isActive
-                            ? "bg-red-100 text-red-800 hover:bg-red-200"
-                            : "bg-green-100 text-green-800 hover:bg-green-200"
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      >
-                        {user.isActive ? "Pasif Yap" : "Aktif Yap"}
-                      </button>
-                      {!user.isApproved && (
-                        <button
-                          onClick={() => handleApprovalChange(user._id, true)}
-                          className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 hover:bg-green-200"
-                        >
-                          Onayla
-                        </button>
-                      )}
-                      {user.isApproved && (
-                        <button
-                          onClick={() => handleApprovalChange(user._id, false)}
-                          className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                        >
-                          Reddet
-                        </button>
+                      {user.role === "admin" ? (
+                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                          Tam Yetki
+                        </span>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() =>
+                              handleStatusChange(user._id, !user.isActive)
+                            }
+                            disabled={user._id === user._id} // Kendi durumunu değiştiremez
+                            className={`px-3 py-1 text-xs font-medium rounded-full ${
+                              user.isActive
+                                ? "bg-red-100 text-red-800 hover:bg-red-200"
+                                : "bg-green-100 text-green-800 hover:bg-green-200"
+                            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                          >
+                            {user.isActive ? "Pasif Yap" : "Aktif Yap"}
+                          </button>
+                          {!user.isApproved && (
+                            <button
+                              onClick={() =>
+                                handleApprovalChange(user._id, true)
+                              }
+                              className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 hover:bg-green-200"
+                            >
+                              Onayla
+                            </button>
+                          )}
+                          {user.isApproved && (
+                            <button
+                              onClick={() =>
+                                handleApprovalChange(user._id, false)
+                              }
+                              className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                            >
+                              Reddet
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>

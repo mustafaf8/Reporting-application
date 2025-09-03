@@ -4,7 +4,9 @@ import api from "../../../services/api";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 import EmptyState from "../../../components/ui/EmptyState";
+import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import { useAuth } from "../../auth/hooks/useAuth";
+import useDebounce from "../../../hooks/useDebounce";
 
 const ProductsListPage = () => {
   const { user } = useAuth();
@@ -12,15 +14,18 @@ const ProductsListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [categories, setCategories] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null);
 
   useEffect(() => {
     fetchProducts();
     fetchCategories();
-  }, [searchTerm, categoryFilter, statusFilter]);
+  }, [debouncedSearch, categoryFilter, statusFilter]);
 
   const fetchProducts = async () => {
     try {
@@ -29,7 +34,7 @@ const ProductsListPage = () => {
 
       // Admin ise tüm filtreleri kullan, normal kullanıcı ise sadece aktif ürünleri getir
       if (user?.role === "admin") {
-        if (searchTerm) params.append("q", searchTerm);
+        if (debouncedSearch) params.append("q", debouncedSearch);
         if (categoryFilter) params.append("category", categoryFilter);
         if (statusFilter) params.append("isActive", statusFilter);
       } else {
@@ -56,28 +61,34 @@ const ProductsListPage = () => {
     }
   };
 
-  const handleDelete = async (productId, productName) => {
-    if (
-      !window.confirm(
-        `${productName} ürününü silmek istediğinizden emin misiniz?`
-      )
-    ) {
-      return;
-    }
+  const handleDeleteClick = (productId, productName) => {
+    setProductToDelete({ id: productId, name: productName });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!productToDelete) return;
 
     try {
-      setDeletingId(productId);
-      await api.delete(`/api/products/${productId}`);
+      setDeletingId(productToDelete.id);
+      await api.delete(`/api/products/${productToDelete.id}`);
       setProducts((prev) =>
-        prev.filter((product) => product._id !== productId)
+        prev.filter((product) => product._id !== productToDelete.id)
       );
       toast.success("Ürün başarıyla silindi");
+      setShowDeleteModal(false);
+      setProductToDelete(null);
     } catch (err) {
       toast.error("Ürün silinirken hata oluştu");
       console.error("Delete error:", err);
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
   };
 
   const toggleStatus = async (productId, currentStatus) => {
@@ -311,7 +322,7 @@ const ProductsListPage = () => {
                             </Link>
                             <button
                               onClick={() =>
-                                handleDelete(product._id, product.name)
+                                handleDeleteClick(product._id, product.name)
                               }
                               disabled={deletingId === product._id}
                               className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 transition-colors disabled:opacity-50"
@@ -331,6 +342,19 @@ const ProductsListPage = () => {
           </div>
         )}
       </div>
+
+      {/* Onay Modalı */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Ürün Silme Onayı"
+        message={`${productToDelete?.name} ürününü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
+        confirmText="Sil"
+        cancelText="İptal"
+        type="danger"
+        isLoading={deletingId === productToDelete?.id}
+      />
     </div>
   );
 };
