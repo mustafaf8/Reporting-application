@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/hooks/useAuth";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
 import UserAvatar from "../../../components/ui/UserAvatar";
+import useDebounce from "../../../hooks/useDebounce";
 
 const AdminProposalsList = () => {
   const { user } = useAuth();
@@ -12,24 +13,31 @@ const AdminProposalsList = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const debouncedSearch = useDebounce(searchTerm, 500);
 
   useEffect(() => {
     if (user?.role === "admin") {
       fetchProposals();
     }
-  }, [user, currentPage, searchTerm, statusFilter]);
+  }, [user, currentPage, debouncedSearch, statusFilter]);
 
   const fetchProposals = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/api/admin/proposals", {
-        params: {
-          page: currentPage,
-          limit: 20,
-          search: searchTerm,
-          status: statusFilter,
-        },
-      });
+      const params = {
+        page: currentPage,
+        limit: 20,
+      };
+
+      // Sadece boş değilse filtreleri ekle
+      if (debouncedSearch) {
+        params.search = debouncedSearch;
+      }
+      if (statusFilter) {
+        params.status = statusFilter;
+      }
+
+      const response = await api.get("/api/admin/proposals", { params });
       setProposals(response.data.proposals);
       setTotalPages(Math.ceil(response.data.total / 20));
     } catch (error) {

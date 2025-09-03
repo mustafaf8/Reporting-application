@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 import UserAvatar from "./UserAvatar";
+import ConfirmationModal from "./ConfirmationModal";
 
 // API base URL'ini al
 const API_BASE_URL =
@@ -15,6 +16,8 @@ const ProfileImageUpload = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef(null);
 
   const sizeClasses = {
@@ -82,23 +85,27 @@ const ProfileImageUpload = ({
     }
   };
 
-  const handleDeleteImage = async () => {
-    // DB saklama ile URL zorunlu değil
+  const handleDeleteImageClick = () => {
+    setShowDeleteModal(true);
+  };
 
-    if (
-      !window.confirm("Profil fotoğrafını silmek istediğinizden emin misiniz?")
-    ) {
-      return;
-    }
-
+  const handleDeleteImageConfirm = async () => {
     try {
+      setDeleting(true);
       await api.delete("/api/upload/profile-image");
       toast.success("Profil fotoğrafı silindi");
       onImageChange && onImageChange("");
+      setShowDeleteModal(false);
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Fotoğraf silinirken hata oluştu");
+    } finally {
+      setDeleting(false);
     }
+  };
+
+  const handleDeleteImageCancel = () => {
+    setShowDeleteModal(false);
   };
 
   // Geçici kullanıcı objesi oluştur (preview için)
@@ -173,7 +180,7 @@ const ProfileImageUpload = ({
 
               {currentImageUrl && (
                 <button
-                  onClick={handleDeleteImage}
+                  onClick={handleDeleteImageClick}
                   className="p-2 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
                   title="Fotoğrafı sil"
                 >
@@ -253,7 +260,7 @@ const ProfileImageUpload = ({
 
           {currentImageUrl && (
             <button
-              onClick={handleDeleteImage}
+              onClick={handleDeleteImageClick}
               className="flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
             >
               <svg
@@ -280,6 +287,19 @@ const ProfileImageUpload = ({
         JPG, PNG veya GIF formatında, maksimum 5MB boyutunda resim
         yükleyebilirsiniz.
       </p>
+
+      {/* Onay Modalı */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteImageCancel}
+        onConfirm={handleDeleteImageConfirm}
+        title="Profil Fotoğrafı Silme Onayı"
+        message="Profil fotoğrafını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Sil"
+        cancelText="İptal"
+        type="danger"
+        isLoading={deleting}
+      />
     </div>
   );
 };

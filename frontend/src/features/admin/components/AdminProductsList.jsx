@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
+import useDebounce from "../../../hooks/useDebounce";
 
 const AdminProductsList = () => {
   const { user } = useAuth();
@@ -11,24 +12,31 @@ const AdminProductsList = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const debouncedCategoryFilter = useDebounce(categoryFilter, 500);
 
   useEffect(() => {
     if (user?.role === "admin") {
       fetchProducts();
     }
-  }, [user, currentPage, categoryFilter, statusFilter]);
+  }, [user, currentPage, debouncedCategoryFilter, statusFilter]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/api/admin/products", {
-        params: {
-          page: currentPage,
-          limit: 20,
-          category: categoryFilter,
-          isActive: statusFilter,
-        },
-      });
+      const params = {
+        page: currentPage,
+        limit: 20,
+      };
+
+      // Sadece boş değilse filtreleri ekle
+      if (debouncedCategoryFilter) {
+        params.category = debouncedCategoryFilter;
+      }
+      if (statusFilter) {
+        params.isActive = statusFilter;
+      }
+
+      const response = await api.get("/api/admin/products", { params });
       setProducts(response.data.products);
       setTotalPages(Math.ceil(response.data.total / 20));
     } catch (error) {

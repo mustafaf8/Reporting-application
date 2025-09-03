@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../../services/api";
+import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 
 const ProposalDetailPage = () => {
   const { id } = useParams();
@@ -8,6 +9,8 @@ const ProposalDetailPage = () => {
   const [proposal, setProposal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -22,14 +25,24 @@ const ProposalDetailPage = () => {
     })();
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!confirm("Silmek istediğinize emin misiniz?")) return;
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
+      setDeleting(true);
       await api.delete(`/api/proposals/${id}`);
       navigate("/proposals");
     } catch (err) {
       alert("Silme işlemi başarısız");
+    } finally {
+      setDeleting(false);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
   };
 
   if (loading) return <p>Yükleniyor...</p>;
@@ -42,10 +55,11 @@ const ProposalDetailPage = () => {
         <h2 className="text-xl font-semibold">{proposal.customerName}</h2>
         <div className="flex gap-2">
           <button
-            onClick={handleDelete}
-            className="bg-red-600 text-white px-3 py-1 rounded-md"
+            onClick={handleDeleteClick}
+            disabled={deleting}
+            className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
           >
-            Sil
+            {deleting ? "Siliniyor..." : "Sil"}
           </button>
         </div>
       </div>
@@ -79,6 +93,19 @@ const ProposalDetailPage = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Onay Modalı */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Teklif Silme Onayı"
+        message="Bu teklifi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Sil"
+        cancelText="İptal"
+        type="danger"
+        isLoading={deleting}
+      />
     </div>
   );
 };
