@@ -6,7 +6,7 @@ import CreateProposalPage from "./features/proposals/components/CreateProposalPa
 import ProposalFormWithProducts from "./features/proposals/components/ProposalFormWithProducts";
 import EditProposalPage from "./features/proposals/components/EditProposalPage";
 import LoginPage from "./features/auth/components/LoginPage";
-import PendingApprovalPage from "./features/auth/components/PendingApprovalPage";
+// PendingApprovalPage kaldırıldı; yeni akışta gerekli değil
 import ProposalsListPage from "./features/proposals/components/ProposalsListPage";
 import ProposalDetailPage from "./features/proposals/components/ProposalDetailPage";
 import ProfilePage from "./features/profile/components/ProfilePage";
@@ -45,8 +45,7 @@ function App() {
         {/* Login sayfası public - korumasız */}
         <Route path="/login" element={<LoginPage />} />
 
-        {/* Onay bekleyen kullanıcılar için özel sayfa */}
-        <Route path="/pending-approval" element={<PendingApprovalPage />} />
+        {/* Onay bekleme sayfası kaldırıldı */}
 
         {/* Diğer tüm sayfalar korumalı */}
         <Route

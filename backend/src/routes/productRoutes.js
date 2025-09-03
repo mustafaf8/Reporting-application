@@ -41,7 +41,7 @@ router.get(
     try {
       const { q, category, isActive, page = 1, limit = 20 } = req.query;
 
-      const filter = {};
+      const filter = { createdBy: req.user.id };
       if (q) filter.name = { $regex: q, $options: "i" };
       if (category) filter.category = category;
       if (isActive !== undefined) filter.isActive = isActive === "true";
@@ -82,6 +82,15 @@ router.get("/:id", auth, async (req, res) => {
       "name email"
     );
     if (!product) return res.status(404).json({ message: "Ürün bulunamadı" });
+    // Sahiplik kontrolü
+    if (
+      String(product.createdBy?._id || product.createdBy) !==
+      String(req.user.id)
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Bu kaynağa erişim yetkiniz yok" });
+    }
     return res.json(product);
   } catch (err) {
     logger.error("Product get error:", {
@@ -98,6 +107,15 @@ router.get("/:id", auth, async (req, res) => {
 // Update
 router.put("/:id", auth, validate(schemas.updateProduct), async (req, res) => {
   try {
+    // Sahiplik kontrolü
+    const existing = await Product.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: "Ürün bulunamadı" });
+    if (String(existing.createdBy) !== String(req.user.id)) {
+      return res
+        .status(403)
+        .json({ message: "Bu kaynağı güncelleme yetkiniz yok" });
+    }
+
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       { ...req.body, updatedAt: new Date() },
@@ -128,6 +146,13 @@ router.put("/:id", auth, validate(schemas.updateProduct), async (req, res) => {
 // Delete
 router.delete("/:id", auth, async (req, res) => {
   try {
+    // Sahiplik kontrolü
+    const existing = await Product.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: "Ürün bulunamadı" });
+    if (String(existing.createdBy) !== String(req.user.id)) {
+      return res.status(403).json({ message: "Bu kaynağı silme yetkiniz yok" });
+    }
+
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).json({ message: "Ürün bulunamadı" });
 
