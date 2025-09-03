@@ -11,7 +11,7 @@ const proposalItemSchema = new mongoose.Schema(
 );
 
 const proposalSchema = new mongoose.Schema({
-  customerName: { type: String, required: true },
+  customerName: { type: String, required: true, index: true },
   items: { type: [proposalItemSchema], required: true },
   grandTotal: { type: Number, required: true },
   status: {
@@ -19,7 +19,7 @@ const proposalSchema = new mongoose.Schema({
     enum: ["draft", "sent", "approved", "rejected"],
     default: "draft",
   },
-  owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
   // Yeni alanlar: teklif hangi şablona dayanıyor ve özelleştirmeler
   template: { type: mongoose.Schema.Types.ObjectId, ref: "Template" },
   customizations: { type: mongoose.Schema.Types.Mixed, default: {} },

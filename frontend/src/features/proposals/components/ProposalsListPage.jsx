@@ -92,6 +92,43 @@ const ProposalsListPage = () => {
     }
   };
 
+  const handleGeneratePdf = async (proposal) => {
+    try {
+      const payload = {
+        proposalId: proposal._id,
+        customerName: proposal.customerName,
+        items: proposal.items,
+        vatRate: proposal.vatRate,
+        discountRate: proposal.discountRate,
+        extraCosts: proposal.extraCosts,
+        status: proposal.status,
+        customizations: proposal.customizations || {},
+      };
+      const res = await api.post("/api/generate-pdf", payload);
+      if (res.status === 202) {
+        toast.success(
+          "Teklifiniz hazırlanıyor. Tamamlandığında bildirim alacaksınız."
+        );
+        // Optimistic local mark
+        setItems((prev) =>
+          prev.map((p) =>
+            p._id === proposal._id
+              ? {
+                  ...p,
+                  customizations: {
+                    ...(p.customizations || {}),
+                    pdfStatus: "processing",
+                  },
+                }
+              : p
+          )
+        );
+      }
+    } catch (err) {
+      toast.error("PDF kuyruğa eklenemedi");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-96 flex items-center justify-center">
@@ -207,7 +244,10 @@ const ProposalsListPage = () => {
                     Toplam
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Durum
+                    Teklif Durumu
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    PDF
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     İşlemler
@@ -256,6 +296,22 @@ const ProposalsListPage = () => {
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
+                      {proposal.customizations?.pdfStatus === "ready" ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          Hazır
+                        </span>
+                      ) : proposal.customizations?.pdfStatus ===
+                        "processing" ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          Oluşturuluyor...
+                        </span>
+                      ) : (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                          -
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex justify-center space-x-2">
                         <Link
                           to={`/proposals/${proposal._id}`}
@@ -269,6 +325,12 @@ const ProposalsListPage = () => {
                         >
                           Düzenle
                         </Link>
+                        <button
+                          onClick={() => handleGeneratePdf(proposal)}
+                          className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                        >
+                          PDF Oluştur
+                        </button>
                       </div>
                     </td>
                   </tr>

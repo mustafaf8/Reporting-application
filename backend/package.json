@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "start:worker": "node src/workers/pdfWorker.js"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +26,9 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "puppeteer": "^24.17.0",
-    "winston": "^3.14.2"
+    "winston": "^3.14.2",
+    "bullmq": "^5.21.4",
+    "ioredis": "^5.4.1",
+    "redis": "^4.6.14"
   }
 }

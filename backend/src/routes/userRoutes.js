@@ -23,9 +23,26 @@ router.get("/:id/profile-image", async (req, res) => {
   }
 });
 
-// Kullanıcı profili endpoint'i
+// Kullanıcı profili endpoint'i (Redis cache ile)
+const { createClient } = require("redis");
+const redisClient = createClient({
+  url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+});
+redisClient.on("error", (err) =>
+  logger.error("Redis error", { error: err.message })
+);
+(async () => {
+  try {
+    await redisClient.connect();
+  } catch (e) {}
+})();
+
 router.get("/me/profile", auth, async (req, res) => {
   try {
+    const cacheKey = `users:me:profile:${req.user.id}`;
+    const cached = await redisClient.get(cacheKey);
+    if (cached) return res.json(JSON.parse(cached));
+
     // Kullanıcı bilgilerini getir
     const user = await User.findById(req.user.id).select("-passwordHash");
     if (!user) {
@@ -37,10 +54,12 @@ router.get("/me/profile", auth, async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(10); // Son 10 teklifi getir
 
-    return res.json({
+    const payload = {
       user,
       proposals,
-    });
+    };
+    await redisClient.set(cacheKey, JSON.stringify(payload), { EX: 60 });
+    return res.json(payload);
   } catch (error) {
     console.error("Profile endpoint error:", error);
     return res.status(500).json({ message: "Profil bilgileri alınamadı" });
@@ -127,6 +146,12 @@ router.put(
       if (!updatedUser) {
         return res.status(404).json({ message: "Kullanıcı bulunamadı" });
       }
+
+      // Cache invalidation
+      try {
+        const cacheKey = `users:me:profile:${req.user.id}`;
+        await redisClient.del(cacheKey);
+      } catch (_) {}
 
       return res.json(updatedUser);
     } catch (error) {

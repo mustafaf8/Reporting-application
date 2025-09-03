@@ -44,6 +44,7 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ name: 1 });
 productSchema.index({ category: 1 });
 productSchema.index({ isActive: 1 });
+productSchema.index({ createdBy: 1 });
 
 // Pre-save middleware
 productSchema.pre("save", function (next) {
