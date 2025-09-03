@@ -5,6 +5,7 @@ import App from "./App";
 import { BrowserRouter } from "react-router-dom"; // BrowserRouter'ı import ediyoruz
 import { AuthProvider } from "./features/auth/hooks/useAuth";
 import { Toaster } from "react-hot-toast";
+import "./i18n";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(

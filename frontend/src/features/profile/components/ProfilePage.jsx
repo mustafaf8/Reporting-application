@@ -112,6 +112,15 @@ const ProfilePage = () => {
     }
   };
 
+  const handleManageSubscription = async () => {
+    try {
+      const { data } = await api.post("/api/billing/customer-portal");
+      if (data?.url) window.location.href = data.url;
+    } catch (err) {
+      toast.error("Abonelik portalı açılamadı");
+    }
+  };
+
   const handleEditCancel = () => {
     setIsEditing(false);
     // Form verilerini orijinal değerlere sıfırla
@@ -221,6 +230,14 @@ const ProfilePage = () => {
               Düzenle
             </button>
           )}
+        </div>
+        <div className="mb-4">
+          <button
+            onClick={handleManageSubscription}
+            className="px-4 py-2 bg-slate-700 text-white rounded-md hover:bg-slate-800 transition-colors"
+          >
+            Aboneliği Yönet
+          </button>
         </div>
 
         {!isEditing ? (

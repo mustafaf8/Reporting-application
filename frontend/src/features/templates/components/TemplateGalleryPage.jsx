@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/hooks/useAuth";
 import api from "../../../services/api";
 
 const TemplateCard = ({ template, onSelect }) => {
@@ -41,6 +42,7 @@ const TemplateGalleryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -87,9 +89,25 @@ const TemplateGalleryPage = () => {
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {templates.map((tpl) => (
-          <TemplateCard key={tpl._id} template={tpl} onSelect={handleSelect} />
-        ))}
+        {templates.map((tpl) => {
+          const isPremium = tpl?.category === "Premium" || tpl?.isPremium;
+          const isFreePlan = (user?.subscription?.plan || "free") === "free";
+          return (
+            <div key={tpl._id} className="relative">
+              <TemplateCard template={tpl} onSelect={handleSelect} />
+              {isPremium && isFreePlan && (
+                <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
+                  <button
+                    onClick={() => navigate("/pricing")}
+                    className="px-3 py-1 text-xs font-medium rounded bg-indigo-600 text-white hover:bg-indigo-700"
+                  >
+                    Yükselt
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

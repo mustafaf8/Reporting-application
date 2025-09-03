@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../../services/api";
+import { useAuth } from "../../auth/hooks/useAuth";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 import EmptyState from "../../../components/ui/EmptyState";
@@ -15,6 +16,7 @@ const ProposalsListPage = () => {
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [statusFilter, setStatusFilter] = useState("");
   const [updatingStatus, setUpdatingStatus] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     let mounted = true;
@@ -104,7 +106,9 @@ const ProposalsListPage = () => {
         status: proposal.status,
         customizations: proposal.customizations || {},
       };
-      const res = await api.post("/api/generate-pdf", payload);
+      const isPro = (user?.subscription?.plan || "free") === "pro";
+      const endpoint = isPro ? "/api/generate-pdf-hq" : "/api/generate-pdf";
+      const res = await api.post(endpoint, payload);
       if (res.status === 202) {
         toast.success(
           "Teklifiniz hazırlanıyor. Tamamlandığında bildirim alacaksınız."
