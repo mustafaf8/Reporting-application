@@ -21,6 +21,7 @@ const proposalRoutes = require("./src/routes/proposalRoutes");
 const userRoutes = require("./src/routes/userRoutes");
 const adminRoutes = require("./src/routes/adminRoutes");
 const uploadRoutes = require("./src/routes/uploadRoutes");
+const templateRoutes = require("./src/routes/templateRoutes");
 
 const app = express();
 
@@ -68,6 +69,7 @@ app.use("/api/proposals", proposalRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/templates", templateRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

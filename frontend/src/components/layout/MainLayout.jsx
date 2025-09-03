@@ -42,7 +42,7 @@ const MainLayout = () => {
               {user && user.role !== "admin" && (
                 <>
                   <Link
-                    to="/"
+                    to="/templates"
                     className="flex items-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
                   >
                     <svg
@@ -240,7 +240,7 @@ const MainLayout = () => {
                 {user && user.role !== "admin" && (
                   <>
                     <Link
-                      to="/"
+                      to="/templates"
                       className="flex items-center px-3 py-2 rounded-lg text-base font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-200"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
