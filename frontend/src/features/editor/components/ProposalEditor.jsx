@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../../services/api";
 import ProfileImageUpload from "../../../components/ui/ProfileImageUpload";
 
@@ -114,9 +114,12 @@ const RightPanel = ({ customizations, setCustomizations, selectedBlockId }) => {
   );
 };
 
+const STORAGE_KEY = "proposal_editor_customizations";
+
 const ProposalEditor = () => {
   const [searchParams] = useSearchParams();
   const templateId = searchParams.get("templateId");
+  const navigate = useNavigate();
 
   const [template, setTemplate] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -140,6 +143,14 @@ const ProposalEditor = () => {
           design: { ...data.design, ...prev.design },
           texts: { ...(data.structure?.defaults || {}), ...prev.texts },
         }));
+        // localStorage'daki son düzenlemeleri yükle
+        const cached = localStorage.getItem(`${STORAGE_KEY}:${templateId}`);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            setCustomizations((prev) => ({ ...prev, ...parsed }));
+          } catch (_) {}
+        }
       } finally {
         setLoading(false);
       }
@@ -151,6 +162,17 @@ const ProposalEditor = () => {
       ...prev,
       texts: { ...prev.texts, [key]: value },
     }));
+  };
+
+  // localStorage'ye otomatik kaydet
+  useEffect(() => {
+    if (!templateId) return;
+    const toSave = JSON.stringify(customizations);
+    localStorage.setItem(`${STORAGE_KEY}:${templateId}`, toSave);
+  }, [templateId, customizations]);
+
+  const goToForm = () => {
+    navigate(`/proposals/create?templateId=${templateId}`);
   };
 
   if (loading) {
@@ -184,6 +206,14 @@ const ProposalEditor = () => {
           setCustomizations={setCustomizations}
           selectedBlockId={selectedBlockId}
         />
+        <div className="mt-4">
+          <button
+            onClick={goToForm}
+            className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            Devam Et ve Teklif Oluştur
+          </button>
+        </div>
       </div>
     </div>
   );

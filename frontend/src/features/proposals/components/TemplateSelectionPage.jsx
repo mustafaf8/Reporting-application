@@ -3,25 +3,25 @@ import { Link } from "react-router-dom";
 import api from "../../../services/api";
 
 const TemplateCard = ({ template }) => {
-  const to = `/proposals/create?templateId=${template._id}`;
+  const createHref = `/proposals/create?templateId=${template._id}`;
+  const editHref = `/editor?templateId=${template._id}`;
   return (
-    <Link
-      to={to}
-      className="group block rounded-lg border border-gray-200 overflow-hidden bg-white hover:shadow-md transition-shadow"
-    >
-      <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
-        {template.previewImageUrl ? (
-          <img
-            src={template.previewImageUrl}
-            alt={template.name}
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
-          />
-        ) : (
-          <div className="w-full h-full grid place-items-center text-gray-400 text-sm">
-            Önizleme yok
-          </div>
-        )}
-      </div>
+    <div className="group rounded-lg border border-gray-200 overflow-hidden bg-white hover:shadow-md transition-shadow">
+      <Link to={editHref} className="block">
+        <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
+          {template.previewImageUrl ? (
+            <img
+              src={template.previewImageUrl}
+              alt={template.name}
+              className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
+            />
+          ) : (
+            <div className="w-full h-full grid place-items-center text-gray-400 text-sm">
+              Önizleme yok
+            </div>
+          )}
+        </div>
+      </Link>
       <div className="p-3">
         <div className="font-semibold text-gray-900 truncate">
           {template.name}
@@ -31,8 +31,22 @@ const TemplateCard = ({ template }) => {
             {template.category}
           </div>
         )}
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Link
+            to={editHref}
+            className="px-3 py-2 text-center text-sm bg-slate-100 hover:bg-slate-200 rounded"
+          >
+            Düzenle
+          </Link>
+          <Link
+            to={createHref}
+            className="px-3 py-2 text-center text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded"
+          >
+            Kullan
+          </Link>
+        </div>
       </div>
-    </Link>
+    </div>
   );
 };
 
