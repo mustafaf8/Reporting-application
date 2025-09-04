@@ -1,44 +1,36 @@
-# Frontend - Güneş Enerjisi Teklif Sistemi
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Ortam Değişkenleri
+## Getting Started
 
-Bu projeyi çalıştırmak için aşağıdaki ortam değişkenlerini `.env` dosyasında tanımlamanız gerekir:
-
-```env
-# API Base URL
-VITE_API_BASE_URL=http://localhost:5000
-```
-
-## Kurulum
-
-1. Bağımlılıkları yükleyin:
-
-```bash
-npm install
-```
-
-2. `.env` dosyasını oluşturun ve yukarıdaki değişkenleri tanımlayın
-
-3. Development sunucusunu başlatın:
+First, run the development server:
 
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## Özellikler
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- **Kullanıcı Kimlik Doğrulama**: Giriş/kayıt sistemi
-- **Teklif Yönetimi**: Teklif oluşturma, listeleme ve düzenleme
-- **Profil Yönetimi**: Kullanıcı profil bilgileri ve düzenleme
-- **Performans Dashboard**: Kullanıcı performans göstergeleri
-- **PDF Oluşturma**: Teklif PDF'lerini otomatik oluşturma
-- **Responsive Tasarım**: Mobil uyumlu arayüz
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Teknolojiler
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-- React 18
-- React Router
-- Axios
-- Tailwind CSS
-- React Hot Toast
-- Vite
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
