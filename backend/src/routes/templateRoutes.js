@@ -104,6 +104,54 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Public: Get live HTML preview rendered from EJS (no PDF)
+router.post("/:id/preview", async (req, res) => {
+  try {
+    const tpl = await Template.findById(req.params.id);
+    if (!tpl) return res.status(404).json({ message: "Şablon bulunamadı" });
+
+    const path = require("path");
+    const ejs = require("ejs");
+
+    const payload = req.body || {};
+    const file = tpl.ejsFile || "proposal-template.ejs";
+    const abs = path.join(__dirname, "..", "templates", file);
+
+    const html = await ejs.renderFile(
+      abs,
+      {
+        customerName: payload.customerName || "Önizleme Müşterisi",
+        items: payload.items || [{ name: "Ürün", quantity: 1, unitPrice: 100 }],
+        createdAt: Date.now(),
+        status: payload.status,
+        subtotal: 100,
+        vatRate: Number(payload.vatRate || 0),
+        vatAmount: 0,
+        discountRate: Number(payload.discountRate || 0),
+        extraCosts: Number(payload.extraCosts || 0),
+        grandTotal: 100,
+        company: payload.company || {},
+        customer: payload.customer || {},
+        issuer: payload.issuer || {},
+        aboutRmr: payload.aboutRmr,
+        design: payload.customizations?.design || {},
+        customizations: payload.customizations || {},
+        formatCurrency: (v) =>
+          new Intl.NumberFormat("tr-TR", {
+            style: "currency",
+            currency: "TRY",
+          }).format(Number(v || 0)),
+      },
+      { async: true }
+    );
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(200).send(html);
+  } catch (err) {
+    return res.status(500).json({ message: "Önizleme oluşturulamadı" });
+  }
+});
+
 // Super Admin: Create template
 router.post("/", auth, admin, async (req, res) => {
   try {

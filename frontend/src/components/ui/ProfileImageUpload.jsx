@@ -117,7 +117,9 @@ const ProfileImageUpload = ({
   return (
     <div className="flex flex-col items-center space-y-4">
       {/* Profil Fotoğrafı */}
-      <div className={`${sizeClasses[size]} relative group`}>
+      <div
+        className={`${sizeClasses[size]} relative group rounded-full overflow-hidden mx-auto`}
+      >
         <UserAvatar
           user={tempUser}
           size={
@@ -133,7 +135,7 @@ const ProfileImageUpload = ({
 
         {/* Hover Overlay */}
         {showUploadButton && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <div className="flex space-x-2">
               <button
                 onClick={() => fileInputRef.current?.click()}
