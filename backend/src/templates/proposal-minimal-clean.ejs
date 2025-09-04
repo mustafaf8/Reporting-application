@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teklif - <%= customerName %></title>
+    <style>
+      @page {
+        size: A4;
+        margin: 18mm 18mm 22mm 18mm;
+      }
+
+      :root {
+        --accent: #ff6f61; /* canlı mercan */
+        --text: #212121; /* koyu gri */
+        --muted: #757575;
+        --bg: #ffffff;
+        --soft: #f5f5f5;
+      }
+
+      body {
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 2px 0 10px 0;
+      }
+      .logo {
+        height: 48px;
+        object-fit: contain;
+      }
+      .header-right {
+        margin-left: auto;
+        text-align: right;
+      }
+      .issuer-line {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      /* Minimal vurgular: çizgi ve boşluk */
+      .rule {
+        height: 1px;
+        width: 100%;
+        background: #e0e0e0;
+        margin: 8px 0 12px 0;
+      }
+
+      .section {
+        margin-top: 16px;
+      }
+      .card {
+        background: transparent;
+        padding: 0;
+        border: none;
+      }
+      .card h3 {
+        margin: 0 0 8px 0;
+        font-size: 13px;
+        font-weight: 800;
+        color: #000;
+      }
+
+      .info-compact {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+      }
+      .info-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: none;
+        color: #000;
+        border-radius: 0;
+        padding: 0;
+        font-size: 12px;
+      }
+      .info-chip .label {
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .info-chip .value {
+        color: #000;
+        font-weight: 700;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+      }
+      thead th {
+        background: transparent;
+        color: #000;
+        text-align: left;
+        padding: 0 0 6px 0;
+        font-size: 12px;
+        font-weight: 700;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      tbody td {
+        font-size: 12px;
+        padding: 6px 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      tbody tr {
+        background: transparent;
+      }
+      .cell-right {
+        text-align: right;
+      }
+
+      .totals {
+        width: 100%;
+        margin-top: 6px;
+      }
+      .totals td {
+        padding: 6px 0;
+        font-size: 12px;
+      }
+      .totals .label {
+        text-align: right;
+        color: var(--muted);
+      }
+      .totals .value {
+        text-align: right;
+        font-weight: 800;
+      }
+      .grand {
+        background: transparent;
+      }
+
+      .grand .label {
+        color: #000;
+        font-weight: 900;
+      }
+      .grand .value {
+        font-size: 18px;
+        color: var(--accent);
+        font-weight: 900;
+      }
+
+      .footer {
+        margin-top: 18px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .page-break {
+        page-break-before: always;
+      }
+      .about-hero {
+        position: relative;
+        width: 100%;
+        height: 160px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fafafa;
+      }
+      .about-hero img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .about-hero .overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.05),
+          rgba(0, 0, 0, 0.25)
+        );
+      }
+      .about-hero .text {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        right: 12px;
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+      .about-hero .text h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+      }
+      .about-hero .text p {
+        margin: 4px 0 0 0;
+        font-size: 12px;
+        opacity: 0.95;
+      }
+      .about-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 10px;
+        align-items: start;
+      }
+      .about-text {
+        font-size: 12px;
+        color: #424242;
+        line-height: 1.7;
+      }
+      .about-card {
+        background: transparent;
+        border: none;
+        padding: 0;
+      }
+      .about-card h4 {
+        margin: 0 0 6px 0;
+        font-size: 13px;
+        color: #000;
+        font-weight: 800;
+      }
+      .about-summary {
+        background: transparent;
+        border: none;
+        padding: 0;
+      }
+      .about-summary h4 {
+        margin: 0 0 6px 0;
+        font-size: 13px;
+        color: #000;
+        font-weight: 800;
+        text-align: left;
+      }
+      .about-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .stat {
+        background: #fafafa;
+        color: #000;
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+      }
+      .stat .num {
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 0.2px;
+      }
+      .stat .lbl {
+        font-size: 11px;
+        color: #616161;
+        margin-top: 2px;
+      }
+      .about-secondary {
+        margin-top: 10px;
+      }
+      .about-secondary .section-title {
+        margin: 4px 0 8px 0;
+        font-size: 13px;
+        font-weight: 900;
+        color: #000;
+        text-align: center;
+      }
+      .about-secondary .gallery {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .about-secondary .tile {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fafafa;
+        height: 120px;
+      }
+      .about-secondary .tile img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <% if (company && (company.logoDataUrl || company.logoUrl)) { %>
+        <img
+          class="logo"
+          src="<%= company.logoDataUrl || company.logoUrl %>"
+          alt="logo"
+        />
+        <% } %>
+        <div style="margin-left: auto; text-align: left">
+          <h1 class="title">Fiyat Teklif Raporu</h1>
+          <div class="issuer-line">
+            Teklif veren: <%= (typeof issuer !=='undefined' && issuer &&
+            issuer.name) ? issuer.name : '-' %>
+          </div>
+          <div class="issuer-line">
+            Telefon: <%= (typeof issuer !=='undefined' && issuer &&
+            issuer.phone) ? issuer.phone : '-' %>
+          </div>
+          <div class="issuer-line">
+            Tarih: <%= new Date(createdAt).toLocaleDateString('tr-TR') %>
+          </div>
+          <% if (status) { %>
+          <div class="issuer-line">Durum: <%= status %></div>
+          <% } %>
+        </div>
+      </div>
+      <div class="rule"></div>
+
+      <% const c=(typeof customer !=='undefined' && customer) ? customer : null;
+      %>
+      <div class="section card">
+        <h3>Müşteri Bilgileri</h3>
+        <% const fullName=(c && (c.fullName || ((c.firstName||'') + ' ' +
+        (c.lastName||''))).trim()) || customerName || '' ; const companyName=c
+        && c.companyName ? c.companyName : '' ; const phone=c && c.phone ?
+        c.phone : '' ; const address=c && c.address ? c.address : '' ; const
+        email=c && c.email ? c.email : '' ; %>
+        <div class="info-compact">
+          <div class="info-chip">
+            <span class="label">Ad Soyad:</span
+            ><span class="value"><%= fullName %></span>
+          </div>
+          <% if (companyName) { %>
+          <div class="info-chip">
+            <span class="label">Şirket:</span
+            ><span class="value"><%= companyName %></span>
+          </div>
+          <% } %> <% if (phone) { %>
+          <div class="info-chip">
+            <span class="label">Telefon:</span
+            ><span class="value"><%= phone %></span>
+          </div>
+          <% } %> <% if (address) { %>
+          <div class="info-chip">
+            <span class="label">Adres:</span
+            ><span class="value"><%= address %></span>
+          </div>
+          <% } %> <% if (email) { %>
+          <div class="info-chip">
+            <span class="label">E-posta:</span
+            ><span class="value"><%= email %></span>
+          </div>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="section">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Malzeme Adı</th>
+              <th class="cell-right">Miktar</th>
+              <th class="cell-right">Birim Fiyat</th>
+              <th class="cell-right">Tutar</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% items.forEach(function(item, index){ %>
+            <tr>
+              <td><%= index + 1 %></td>
+              <td><%= item.name %></td>
+              <td class="cell-right"><%= item.quantity %></td>
+              <td class="cell-right"><%= formatCurrency(item.unitPrice) %></td>
+              <td class="cell-right">
+                <%= formatCurrency(item.quantity * item.unitPrice) %>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+
+      <table
+        class="totals section"
+        style="border-collapse: separate; border-spacing: 0"
+      >
+        <tbody>
+          <tr>
+            <td class="label" style="width: 70%">Ara Toplam</td>
+            <td class="value"><%= formatCurrency(subtotal) %></td>
+          </tr>
+          <% if (discountRate && discountRate> 0) { %>
+          <tr>
+            <td class="label">İskonto (<%= discountRate %>%)</td>
+            <td class="value">
+              -<%= formatCurrency(subtotal * (discountRate/100)) %>
+            </td>
+          </tr>
+          <% } %> <% if (extraCosts && extraCosts> 0) { %>
+          <tr>
+            <td class="label">Ek Maliyetler</td>
+            <td class="value"><%= formatCurrency(extraCosts) %></td>
+          </tr>
+          <% } %> <% if (vatRate && vatRate> 0) { %>
+          <tr>
+            <td class="label">KDV (<%= vatRate %>%)</td>
+            <td class="value"><%= formatCurrency(vatAmount) %></td>
+          </tr>
+          <% } %>
+          <tr class="grand" style="font-size: 14px">
+            <td class="label">GENEL TOPLAM</td>
+            <td class="value"><%= formatCurrency(grandTotal) %></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="footer">
+        Not: Bu teklif bilgilendirme amaçlıdır. Geçerlilik tarihi:
+        <strong
+          ><%= new Date(createdAt +
+          (10*24*60*60*1000)).toLocaleDateString('tr-TR') %></strong
+        >.
+      </div>
+    </div>
+
+    <div class="container page-break">
+      <div class="about-hero">
+        <% if (aboutRmr && aboutRmr.images && aboutRmr.images[0]) { %>
+        <img src="<%= aboutRmr.images[0] %>" alt="RMR Hero" />
+        <% } %>
+        <div class="overlay"></div>
+        <div class="text">
+          <h2><%= (aboutRmr && aboutRmr.title) || 'RMR Enerji Hakkında' %></h2>
+          <p>Net, sade ve odaklı bir yaklaşım</p>
+        </div>
+      </div>
+
+      <div class="about-section">
+        <div class="about-summary">
+          <h4>Özet</h4>
+          <p class="about-text">
+            <%= (aboutRmr && aboutRmr.description) || '' %>
+          </p>
+        </div>
+        <div class="about-card">
+          <h4>Şirket Bilgileri</h4>
+          <div class="info-compact">
+            <div class="info-chip">
+              <span class="label">Adres:</span
+              ><span class="value"
+                >Fevziçakmak, 10777 Sk. No:1AC, Karatay/Konya</span
+              >
+            </div>
+            <div class="info-chip">
+              <span class="label">Uzmanlık:</span
+              ><span class="value">GES, EPC, bakım</span>
+            </div>
+            <div class="info-chip">
+              <span class="label">VKN:</span
+              ><span class="value">00000000000</span>
+            </div>
+            <div class="info-chip">
+              <span class="label">Web:</span
+              ><span class="value">rmrenerji.com</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-stats">
+        <div class="stat">
+          <div class="num">300+</div>
+          <div class="lbl">Tamamlanan Proje</div>
+        </div>
+        <div class="stat">
+          <div class="num">14+</div>
+          <div class="lbl">Yıl Deneyim</div>
+        </div>
+        <div class="stat">
+          <div class="num">%97</div>
+          <div class="lbl">Müşteri Memnuniyeti</div>
+        </div>
+      </div>
+
+      <div class="about-secondary">
+        <h4 class="section-title">Çalışmalar</h4>
+        <div class="gallery">
+          <% if (aboutRmr && aboutRmr.gallery && aboutRmr.gallery.length) { %>
+          <% aboutRmr.gallery.slice(0,4).forEach(function(g){ %>
+          <div class="tile">
+            <img src="<%= g %>" alt="Galeri" />
+          </div>
+          <% }); %> <% } %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

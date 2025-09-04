@@ -4,6 +4,7 @@ import ErrorBoundary from "./components/ui/ErrorBoundary";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CreateProposalPage from "./features/proposals/components/CreateProposalPage";
 import ProposalFormWithProducts from "./features/proposals/components/ProposalFormWithProducts";
+import TemplateSelectionPage from "./features/proposals/components/TemplateSelectionPage";
 import EditProposalPage from "./features/proposals/components/EditProposalPage";
 import LoginPage from "./features/auth/components/LoginPage";
 // PendingApprovalPage kaldırıldı; yeni akışta gerekli değil
@@ -60,7 +61,11 @@ function App() {
           }
         >
           {/* index=true, path="/" ile aynı anlama gelir. Ana sayfadır. */}
-          <Route index element={<ProposalFormWithProducts />} />
+          <Route index element={<TemplateSelectionPage />} />
+          <Route
+            path="proposals/create"
+            element={<ProposalFormWithProducts />}
+          />
           <Route path="templates" element={<TemplateGalleryPage />} />
           <Route path="editor" element={<ProposalEditor />} />
           <Route path="pricing" element={<PricingPage />} />
