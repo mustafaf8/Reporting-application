@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
           name: "Modern Kurumsal",
           description: "Profesyonel kurumsal çizgi",
           category: "corporate",
-          previewImageUrl: "/static/templates/1.jpg",
+          previewImageUrl: "/static/templates/2.jpg",
           ejsFile: "proposal-modern-corporate.ejs",
         },
         {
@@ -44,21 +44,21 @@ router.get("/", async (req, res) => {
           name: "Doğa & Çevre Dostu",
           description: "Sürdürülebilir yeşil tema",
           category: "eco",
-          previewImageUrl: "/static/templates/3.jpg",
+          previewImageUrl: "/static/templates/2.jpg",
           ejsFile: "proposal-eco-green.ejs",
         },
         {
           name: "Zarif & Prestijli",
           description: "Bordo-altın premium tema",
           category: "premium",
-          previewImageUrl: "/static/templates/4.jpg",
+          previewImageUrl: "/static/templates/2.jpg",
           ejsFile: "proposal-elegant-premium.ejs",
         },
         {
           name: "Minimal & Sade",
           description: "Tipografi odaklı minimal tasarım",
           category: "minimal",
-          previewImageUrl: "/static/templates/pdfassetone.jpg",
+          previewImageUrl: "/static/templates/2.jpg",
           ejsFile: "proposal-minimal-clean.ejs",
         },
       ];
@@ -73,7 +73,20 @@ router.get("/", async (req, res) => {
       total = seed.length;
     }
 
-    return res.json({ items, total, page: Number(page), limit: Number(limit) });
+    // Geçici: tüm kart önizlemelerini tek görsele sabitle (tam URL)
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const forced = `${baseUrl}/static/templates/2.jpg`;
+    const normalized = (items || []).map((it) => {
+      const obj = typeof it.toObject === "function" ? it.toObject() : it;
+      return { ...obj, previewImageUrl: forced };
+    });
+
+    return res.json({
+      items: normalized,
+      total,
+      page: Number(page),
+      limit: Number(limit),
+    });
   } catch (err) {
     logger.error("Template list error", { error: err.message });
     return res.status(500).json({ message: "Şablonlar alınamadı" });

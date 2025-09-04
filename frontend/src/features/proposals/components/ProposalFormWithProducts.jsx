@@ -8,6 +8,9 @@ import ProductSelector from "../../products/components/ProductSelector";
 const ProposalFormWithProducts = () => {
   const [searchParams] = useSearchParams();
   const templateId = searchParams.get("templateId") || "";
+  const editorCacheKey = templateId
+    ? `proposal_editor_customizations:${templateId}`
+    : null;
   // State yönetimi
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [items, setItems] = useState([]);
@@ -101,6 +104,15 @@ const ProposalFormWithProducts = () => {
     try {
       // Önce teklifi DB'ye kaydet
       const companyForPdf = await buildCompanyForPdf();
+      // Editor özelleştirmeleri (varsayılan boş)
+      let customizations = {};
+      if (editorCacheKey) {
+        try {
+          const cached = localStorage.getItem(editorCacheKey);
+          if (cached) customizations = JSON.parse(cached) || {};
+        } catch (_) {}
+      }
+
       const payload = {
         customerName: customer.fullName,
         items,
@@ -111,6 +123,7 @@ const ProposalFormWithProducts = () => {
         customer,
         issuer,
         templateId,
+        customizations,
       };
 
       try {
