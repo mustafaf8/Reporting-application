@@ -15,13 +15,63 @@ router.get("/", async (req, res) => {
     if (q) filter.name = { $regex: q, $options: "i" };
 
     const skip = (Number(page) - 1) * Number(limit);
-    const [items, total] = await Promise.all([
+    let [items, total] = await Promise.all([
       Template.find(filter)
         .skip(skip)
         .limit(Number(limit))
         .sort({ createdAt: -1 }),
       Template.countDocuments(filter),
     ]);
+
+    // Seed default templates if empty
+    if (total === 0) {
+      const seed = [
+        {
+          name: "Modern Kurumsal",
+          description: "Profesyonel kurumsal çizgi",
+          category: "corporate",
+          previewImageUrl: "/static/templates/1.jpg",
+          ejsFile: "proposal-modern-corporate.ejs",
+        },
+        {
+          name: "Yenilikçi Teknoloji",
+          description: "Dinamik ve modern teknoloji teması",
+          category: "tech",
+          previewImageUrl: "/static/templates/2.jpg",
+          ejsFile: "proposal-innovative-tech.ejs",
+        },
+        {
+          name: "Doğa & Çevre Dostu",
+          description: "Sürdürülebilir yeşil tema",
+          category: "eco",
+          previewImageUrl: "/static/templates/3.jpg",
+          ejsFile: "proposal-eco-green.ejs",
+        },
+        {
+          name: "Zarif & Prestijli",
+          description: "Bordo-altın premium tema",
+          category: "premium",
+          previewImageUrl: "/static/templates/4.jpg",
+          ejsFile: "proposal-elegant-premium.ejs",
+        },
+        {
+          name: "Minimal & Sade",
+          description: "Tipografi odaklı minimal tasarım",
+          category: "minimal",
+          previewImageUrl: "/static/templates/pdfassetone.jpg",
+          ejsFile: "proposal-minimal-clean.ejs",
+        },
+      ];
+      await Template.insertMany(
+        seed.map((s) => ({
+          ...s,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }))
+      );
+      items = seed; // hızlıca geri döndür
+      total = seed.length;
+    }
 
     return res.json({ items, total, page: Number(page), limit: Number(limit) });
   } catch (err) {

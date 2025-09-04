@@ -40,6 +40,11 @@ app.use(morgan("combined", { stream: logger.stream }));
 
 // Static dosya servisi - uploads klasörü için
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Şablon önizlemeleri için templates klasörünü servis et
+app.use(
+  "/static/templates",
+  express.static(path.join(__dirname, "src", "templates"))
+);
 
 // Response mesajları için middleware
 app.use((req, res, next) => {

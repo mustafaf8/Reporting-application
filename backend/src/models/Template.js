@@ -6,6 +6,7 @@ const templateSchema = new mongoose.Schema(
     description: { type: String, default: "" },
     category: { type: String, default: "" },
     previewImageUrl: { type: String, default: "" },
+    ejsFile: { type: String, required: true },
     // Şablonun bölümleri ve varsayılan metinleri
     structure: { type: mongoose.Schema.Types.Mixed, default: {} },
     // Varsayılan renkler, fontlar gibi stil bilgileri

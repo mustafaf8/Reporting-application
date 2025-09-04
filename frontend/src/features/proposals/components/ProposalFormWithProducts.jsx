@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../../services/api";
 import toast from "react-hot-toast";
 import companyConfig, { buildCompanyForPdf } from "../../../config/company";
 import ProductSelector from "../../products/components/ProductSelector";
 
 const ProposalFormWithProducts = () => {
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get("templateId") || "";
   // State yönetimi
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [items, setItems] = useState([]);
@@ -107,6 +110,7 @@ const ProposalFormWithProducts = () => {
         company: companyForPdf,
         customer,
         issuer,
+        templateId,
       };
 
       try {

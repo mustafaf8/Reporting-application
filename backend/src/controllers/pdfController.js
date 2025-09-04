@@ -3,12 +3,7 @@ const fs = require("fs");
 const ejs = require("ejs");
 const puppeteer = require("puppeteer");
 
-const templatePath = path.join(
-  __dirname,
-  "..",
-  "templates",
-  "proposal-template.ejs"
-);
+const Template = require("../models/Template");
 
 function formatCurrencyTRY(value) {
   return new Intl.NumberFormat("tr-TR", {
@@ -57,21 +52,70 @@ async function generateProposalPdf(req, res) {
       );
     }
 
-    const queue = getQueue();
-    if (!queue) {
-      return res
-        .status(202)
-        .json({ message: "PDF kuyruğu devre dışı (Redis kapalı)." });
+    // Dinamik şablon seçimi
+    let resolvedEjsFile = "proposal-template.ejs";
+    if (payload.templateId) {
+      try {
+        const tpl = await Template.findById(payload.templateId);
+        if (tpl && tpl.ejsFile) {
+          resolvedEjsFile = tpl.ejsFile;
+        }
+      } catch (_) {}
     }
 
-    const job = await queue.add(
-      "generate",
-      { payload, proposalId: payload.proposalId },
-      { removeOnComplete: true, removeOnFail: true }
+    // Doğrudan PDF üretimi (frontend blob bekliyor)
+    const subtotal = payload.items.reduce(
+      (sum, it) => sum + Number(it.quantity) * Number(it.unitPrice),
+      0
     );
-    return res
-      .status(202)
-      .json({ message: "Teklifiniz hazırlanıyor...", jobId: job.id });
+    const discountAmount = subtotal * (Number(payload.discountRate || 0) / 100);
+    const withExtras =
+      subtotal - discountAmount + Number(payload.extraCosts || 0);
+    const vatAmount = withExtras * (Number(payload.vatRate || 0) / 100);
+    const grandTotal = Math.round((withExtras + vatAmount) * 100) / 100;
+
+    const html = await ejs.renderFile(
+      path.join(__dirname, "..", "templates", resolvedEjsFile),
+      {
+        customerName: payload.customerName,
+        items: payload.items,
+        createdAt: Date.now(),
+        status: payload.status,
+        subtotal,
+        vatRate: Number(payload.vatRate || 0),
+        vatAmount,
+        discountRate: Number(payload.discountRate || 0),
+        extraCosts: Number(payload.extraCosts || 0),
+        grandTotal,
+        company: payload.company,
+        customer: payload.customer,
+        issuer: payload.issuer,
+        aboutRmr: payload.aboutRmr,
+        customizations: payload.customizations || {},
+        formatCurrency: (v) => formatCurrencyTRY(v),
+      },
+      { async: true }
+    );
+
+    const browser = await puppeteer.launch({
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      margin: { top: "20mm", right: "15mm", bottom: "20mm", left: "15mm" },
+      printBackground: true,
+    });
+    await browser.close();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="teklif-${Date.now()}.pdf"`
+    );
+    return res.status(200).send(pdfBuffer);
   } catch (error) {
     console.error("PDF kuyruğa ekleme hatası:", error);
     return res.error("Sunucu hatası. PDF işleme alınamadı.", 500);

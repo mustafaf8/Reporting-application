@@ -14,12 +14,11 @@ const MONGODB_URI =
 
 const connection = new IORedis(REDIS_URL);
 
-const templatePath = path.join(
-  __dirname,
-  "..",
-  "templates",
-  "proposal-template.ejs"
-);
+function getTemplatePath(ejsFile) {
+  const file =
+    ejsFile && typeof ejsFile === "string" ? ejsFile : "proposal-template.ejs";
+  return path.join(__dirname, "..", "templates", file);
+}
 
 function formatCurrencyTRY(value) {
   return new Intl.NumberFormat("tr-TR", {
@@ -43,7 +42,7 @@ async function renderPdf(jobData) {
   const grandTotal = Math.round((withExtras + vatAmount) * 100) / 100;
 
   const html = await ejs.renderFile(
-    templatePath,
+    getTemplatePath(payload.ejsFile),
     {
       customerName: payload.customerName,
       items: payload.items,
