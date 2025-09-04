@@ -11,8 +11,8 @@
       }
 
       :root {
-        --primary: #007bff; /* canlı mavi */
-        --secondary: #343a40; /* koyu gri */
+        --primary: <%= (design && design.primaryColor) || "#007bff" %>; /* canlı mavi */
+        --secondary: <%= (design && design.secondaryColor) || "#343a40" %>; /* koyu gri */
         --text: #495057; /* orta gri */
         --bg: #f8f9fa; /* çok açık gri */
         --line: #e9ecef;
