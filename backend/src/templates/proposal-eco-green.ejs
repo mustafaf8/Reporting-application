@@ -11,8 +11,8 @@
       }
 
       :root {
-        --primary: #285430; /* koyu yeşil */
-        --secondary: #556b2f; /* zeytin yeşili */
+        --primary: <%= (design && design.primaryColor) || "#285430" %>; /* koyu yeşil */
+        --secondary: <%= (design && design.secondaryColor) || "#556b2f" %>; /* zeytin yeşili */
         --text: #5d4037; /* koyu kahverengi */
         --bg: #f5f5dc; /* krem */
         --line: #e0e0d1;

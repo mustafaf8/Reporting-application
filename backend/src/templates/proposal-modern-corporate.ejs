@@ -11,8 +11,8 @@
       }
 
       :root {
-        --primary: #0a2342; /* koyu lacivert */
-        --secondary: #6c757d; /* orta gri */
+        --primary: <%= (design && design.primaryColor) || "#0a2342" %>; /* koyu lacivert */
+        --secondary: <%= (design && design.secondaryColor) || "#6c757d" %>; /* orta gri */
         --text: #212529; /* siyah */
         --muted: #adb5bd;
         --line: #e9ecef;

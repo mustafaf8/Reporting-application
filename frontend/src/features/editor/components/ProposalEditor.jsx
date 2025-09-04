@@ -29,9 +29,23 @@ const LeftPanel = ({ structure, onReorder, selectedBlockId, onSelect }) => {
 };
 
 const PreviewPanel = ({ structure, customizations, onInlineEdit }) => {
+  const cssVars = {
+    "--primary": customizations?.design?.primaryColor || undefined,
+    "--secondary": customizations?.design?.secondaryColor || undefined,
+    "--accent": customizations?.design?.accentColor || undefined,
+  };
   return (
     <div className="bg-white rounded-lg shadow p-6 min-h-[480px]">
-      <div className="prose max-w-none">
+      <div className="prose max-w-none" style={cssVars}>
+        {customizations?.brand?.logoUrl && (
+          <div className="mb-4">
+            <img
+              src={customizations.brand.logoUrl}
+              alt="Logo"
+              style={{ height: 48, objectFit: "contain" }}
+            />
+          </div>
+        )}
         {(structure?.blocks || []).map((block, idx) => {
           const key = block.bindKey || `block_${idx}`;
           const value = customizations?.texts?.[key] ?? block.defaultText;

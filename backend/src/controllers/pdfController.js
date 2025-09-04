@@ -74,6 +74,9 @@ async function generateProposalPdf(req, res) {
     const vatAmount = withExtras * (Number(payload.vatRate || 0) / 100);
     const grandTotal = Math.round((withExtras + vatAmount) * 100) / 100;
 
+    const design = payload.customizations?.design || {};
+    const brand = payload.customizations?.brand || {};
+
     const html = await ejs.renderFile(
       path.join(__dirname, "..", "templates", resolvedEjsFile),
       {
@@ -87,7 +90,20 @@ async function generateProposalPdf(req, res) {
         discountRate: Number(payload.discountRate || 0),
         extraCosts: Number(payload.extraCosts || 0),
         grandTotal,
-        company: payload.company,
+        company: {
+          ...(payload.company || {}),
+          // Editor brand.logoUrl öncelikli, sonra mevcut company.logoDataUrl/Url
+          logoDataUrl:
+            brand.logoUrl ||
+            payload.company?.logoDataUrl ||
+            payload.company?.logoUrl,
+          logoUrl: brand.logoUrl || payload.company?.logoUrl,
+        },
+        design: {
+          primaryColor: design.primaryColor || undefined,
+          secondaryColor: design.secondaryColor || undefined,
+          accentColor: design.accentColor || undefined,
+        },
         customer: payload.customer,
         issuer: payload.issuer,
         aboutRmr: payload.aboutRmr,

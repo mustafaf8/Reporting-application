@@ -11,8 +11,8 @@
       }
 
       :root {
-        --primary: #800000; /* koyu bordo */
-        --accent: #d4af37; /* altın */
+        --primary: <%= (design && design.primaryColor) || "#800000" %>; /* koyu bordo */
+        --accent: <%= (design && design.accentColor) || "#d4af37" %>; /* altın */
         --text: #36454f; /* koyu gri */
         --bg: #ffffff;
         --line: #e6e6e6;
