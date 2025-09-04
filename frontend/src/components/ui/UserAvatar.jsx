@@ -85,25 +85,27 @@ const UserAvatar = ({
   const AvatarComponent = () => (
     <div
       className={`
-        ${sizeClasses[size]} 
-        ${onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}
+        ${sizeClasses[size]}
+        ${
+          onClick
+            ? "cursor-pointer transition-transform hover:scale-[1.02]"
+            : ""
+        }
         ${className}
       `}
       onClick={onClick}
     >
       <div
         className={`
-        ${sizeClasses[size]} 
-        rounded-full 
-        overflow-hidden 
-        border-2 
-        border-white 
-        shadow-lg 
-        bg-gradient-to-r 
-        from-indigo-500 
-        to-purple-600 
-        flex 
-        items-center 
+        ${sizeClasses[size]}
+        rounded-full
+        overflow-hidden
+        border
+        border-gray-200
+        shadow-sm
+        bg-white
+        flex
+        items-center
         justify-center
         relative
       `}
@@ -129,9 +131,9 @@ const UserAvatar = ({
         {/* Fallback - İsim baş harfleri */}
         <div
           className={`
-             w-full h-full 
+             absolute inset-0 
              flex items-center justify-center 
-             text-white font-semibold
+             text-gray-700 font-semibold
              ${textSizes[size]}
              ${
                user?.profileImageUrl && !imageError && !imageLoading

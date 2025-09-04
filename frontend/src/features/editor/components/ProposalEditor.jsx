@@ -28,43 +28,40 @@ const LeftPanel = ({ structure, onReorder, selectedBlockId, onSelect }) => {
   );
 };
 
-const PreviewPanel = ({ structure, customizations, onInlineEdit }) => {
+const PreviewPanel = ({
+  structure,
+  customizations,
+  onInlineEdit,
+  templateId,
+}) => {
   const cssVars = {
     "--primary": customizations?.design?.primaryColor || undefined,
     "--secondary": customizations?.design?.secondaryColor || undefined,
     "--accent": customizations?.design?.accentColor || undefined,
   };
+  const [html, setHtml] = React.useState("");
+  React.useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        if (!templateId) return;
+        const payload = { customizations };
+        const res = await api.post(
+          `/api/templates/${templateId}/preview`,
+          payload,
+          { headers: { Accept: "text/html" } }
+        );
+        if (mounted) setHtml(res.data);
+      } catch (_) {}
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [templateId, JSON.stringify(customizations)]);
+
   return (
-    <div className="bg-white rounded-lg shadow p-6 min-h-[480px]">
-      <div className="prose max-w-none" style={cssVars}>
-        {customizations?.brand?.logoUrl && (
-          <div className="mb-4">
-            <img
-              src={customizations.brand.logoUrl}
-              alt="Logo"
-              style={{ height: 48, objectFit: "contain" }}
-            />
-          </div>
-        )}
-        {(structure?.blocks || []).map((block, idx) => {
-          const key = block.bindKey || `block_${idx}`;
-          const value = customizations?.texts?.[key] ?? block.defaultText;
-          return (
-            <div key={key} className="mb-6">
-              <div
-                contentEditable
-                suppressContentEditableWarning
-                className="outline-none border border-transparent hover:border-slate-200 rounded px-2"
-                onBlur={(e) =>
-                  onInlineEdit(key, e.currentTarget.textContent || "")
-                }
-              >
-                {value || "Metni düzenlemek için tıklayın"}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <div className="bg-white rounded-lg shadow min-h-[480px] overflow-hidden">
+      <iframe title="preview" className="w-full h-[560px]" srcDoc={html} />
     </div>
   );
 };
@@ -72,6 +69,7 @@ const PreviewPanel = ({ structure, customizations, onInlineEdit }) => {
 const RightPanel = ({ customizations, setCustomizations, selectedBlockId }) => {
   const primary = customizations?.design?.primaryColor || "#4f46e5";
   const secondary = customizations?.design?.secondaryColor || "#7c3aed";
+  const accent = customizations?.design?.accentColor || "#16a34a";
 
   const updateColor = (key, value) => {
     setCustomizations((prev) => ({
@@ -80,28 +78,120 @@ const RightPanel = ({ customizations, setCustomizations, selectedBlockId }) => {
     }));
   };
 
+  const presetPalettes = [
+    { name: "Kurumsal", p: "#0a2342", s: "#6c757d", a: "#0d6efd" },
+    { name: "Teknoloji", p: "#007bff", s: "#343a40", a: "#6610f2" },
+    { name: "Yeşil", p: "#285430", s: "#556b2f", a: "#2e7d32" },
+    { name: "Premium", p: "#800000", s: "#36454f", a: "#d4af37" },
+    { name: "Minimal", p: "#111827", s: "#6b7280", a: "#ff6f61" },
+  ];
+
+  const applyPreset = (preset) => {
+    setCustomizations((prev) => ({
+      ...prev,
+      design: {
+        ...prev.design,
+        primaryColor: preset.p,
+        secondaryColor: preset.s,
+        accentColor: preset.a,
+      },
+    }));
+  };
+
+  const resetDesign = () => {
+    setCustomizations((prev) => ({ ...prev, design: {} }));
+  };
+
+  const clearTexts = () => {
+    setCustomizations((prev) => ({ ...prev, texts: {} }));
+  };
+
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-lg border border-slate-200 p-4">
         <div className="font-medium text-slate-900 mb-3">Markalama</div>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {presetPalettes.map((p) => (
+            <button
+              key={p.name}
+              type="button"
+              onClick={() => applyPreset(p)}
+              className="rounded border border-slate-200 p-2 hover:border-slate-300 text-xs text-slate-700"
+              title={p.name}
+            >
+              <div className="flex items-center gap-1">
+                <span
+                  className="inline-block w-3 h-3 rounded"
+                  style={{ background: p.p }}
+                ></span>
+                <span
+                  className="inline-block w-3 h-3 rounded"
+                  style={{ background: p.s }}
+                ></span>
+                <span
+                  className="inline-block w-3 h-3 rounded"
+                  style={{ background: p.a }}
+                ></span>
+                <span className="ml-2 truncate">{p.name}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-slate-700">Ana Renk</label>
+          <div className="grid grid-cols-7 items-center gap-2">
+            <label className="col-span-3 text-sm text-slate-700">
+              Ana Renk
+            </label>
             <input
               type="color"
               value={primary}
               onChange={(e) => updateColor("primaryColor", e.target.value)}
+              className="col-span-1 h-9 w-9 p-0 border rounded"
+            />
+            <input
+              type="text"
+              value={primary}
+              onChange={(e) => updateColor("primaryColor", e.target.value)}
+              className="col-span-3 border rounded px-2 py-1 text-sm"
             />
           </div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm text-slate-700">İkincil Renk</label>
+          <div className="grid grid-cols-7 items-center gap-2">
+            <label className="col-span-3 text-sm text-slate-700">
+              İkincil Renk
+            </label>
             <input
               type="color"
               value={secondary}
               onChange={(e) => updateColor("secondaryColor", e.target.value)}
+              className="col-span-1 h-9 w-9 p-0 border rounded"
+            />
+            <input
+              type="text"
+              value={secondary}
+              onChange={(e) => updateColor("secondaryColor", e.target.value)}
+              className="col-span-3 border rounded px-2 py-1 text-sm"
             />
           </div>
-          <div>
+          <div className="grid grid-cols-7 items-center gap-2">
+            <label className="col-span-3 text-sm text-slate-700">
+              Vurgu Rengi
+            </label>
+            <input
+              type="color"
+              value={accent}
+              onChange={(e) => updateColor("accentColor", e.target.value)}
+              className="col-span-1 h-9 w-9 p-0 border rounded"
+            />
+            <input
+              type="text"
+              value={accent}
+              onChange={(e) => updateColor("accentColor", e.target.value)}
+              className="col-span-3 border rounded px-2 py-1 text-sm"
+            />
+          </div>
+
+          <div className="pt-2 border-t">
             <label className="block text-sm text-slate-700 mb-1">Logo</label>
             <ProfileImageUpload
               currentImageUrl={customizations?.brand?.logoUrl}
@@ -113,16 +203,48 @@ const RightPanel = ({ customizations, setCustomizations, selectedBlockId }) => {
               }
               size="md"
             />
+            <input
+              type="text"
+              placeholder="Logo URL"
+              value={customizations?.brand?.logoUrl || ""}
+              onChange={(e) =>
+                setCustomizations((prev) => ({
+                  ...prev,
+                  brand: { ...prev.brand, logoUrl: e.target.value },
+                }))
+              }
+              className="mt-2 w-full border rounded px-2 py-1 text-sm"
+            />
           </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={resetDesign}
+            className="px-3 py-2 text-sm rounded border border-slate-300 hover:bg-slate-50"
+          >
+            Varsayılana Sıfırla
+          </button>
+          <button
+            type="button"
+            onClick={clearTexts}
+            className="px-3 py-2 text-sm rounded border border-rose-300 text-rose-600 hover:bg-rose-50"
+          >
+            Metinleri Temizle
+          </button>
         </div>
       </div>
 
       <div className="bg-white rounded-lg border border-slate-200 p-4">
-        <div className="font-medium text-slate-900 mb-3">Blok Ayarları</div>
-        <div className="text-sm text-slate-600">
-          Seçili blok: {String(selectedBlockId ?? "-")}
+        <div className="font-medium text-slate-900 mb-2">Blok Ayarları</div>
+        <div className="text-xs text-slate-600 mb-3">
+          Seçili blok:{" "}
+          <span className="font-medium">{String(selectedBlockId ?? "-")}</span>
         </div>
-        {/* İleride seçili bloğa özel form öğeleri eklenecek */}
+        <div className="text-xs text-slate-500">
+          Seçili bloğa özel ayarlar yakında eklenecek.
+        </div>
       </div>
     </div>
   );
@@ -212,6 +334,7 @@ const ProposalEditor = () => {
           structure={template?.structure}
           customizations={customizations}
           onInlineEdit={onInlineEdit}
+          templateId={templateId}
         />
       </div>
       <div className="col-span-12 md:col-span-3">
