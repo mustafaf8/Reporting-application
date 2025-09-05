@@ -1,56 +1,76 @@
 export interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role: "user" | "admin";
-  avatar?: string;
-  createdAt: string;
-  updatedAt: string;
+  position?: string;
+  profileImageUrl?: string;
+  profileImagePublicId?: string;
+  phone?: string;
+  department?: string;
+  company?: string;
+  address?: string;
+  bio?: string;
+  isActive: boolean;
+  isApproved: boolean;
+  subscription: {
+    plan: string;
+    status: string;
+    customerId: string;
+    subscriptionId: string;
+    currentPeriodEnd?: Date;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Product {
-  id: string;
+  _id: string;
   name: string;
-  description: string;
-  price: number;
-  category: string;
+  unit: string;
+  unitPrice: number;
+  category?: string;
+  description?: string;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Proposal {
-  id: string;
-  title: string;
-  description: string;
-  clientName: string;
-  clientEmail: string;
+  _id: string;
+  customerName: string;
+  items: ProposalItem[];
+  grandTotal: number;
   status: "draft" | "sent" | "approved" | "rejected";
-  template: string;
-  products: ProposalProduct[];
-  totalAmount: number;
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
+  owner: string;
+  template?: string;
+  customizations?: any;
+  vatRate: number;
+  discountRate: number;
+  extraCosts: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export interface ProposalProduct {
-  id: string;
-  productId: string;
-  product: Product;
+export interface ProposalItem {
+  name: string;
   quantity: number;
   unitPrice: number;
-  totalPrice: number;
+  lineTotal: number;
 }
 
 export interface Template {
-  id: string;
+  _id: string;
   name: string;
   description: string;
-  preview: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  category: string;
+  previewImageUrl: string;
+  ejsFile: string;
+  structure: any;
+  design: any;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface AuthContextType {
@@ -88,30 +108,33 @@ export interface RegisterRequest {
 }
 
 export interface CreateProposalRequest {
-  title: string;
-  description: string;
-  clientName: string;
-  clientEmail: string;
-  template: string;
-  products: {
-    productId: string;
+  customerName: string;
+  items: {
+    name: string;
     quantity: number;
     unitPrice: number;
+    lineTotal: number;
   }[];
+  template?: string;
+  customizations?: any;
+  vatRate?: number;
+  discountRate?: number;
+  extraCosts?: number;
 }
 
 export interface UpdateProposalRequest extends Partial<CreateProposalRequest> {
-  id: string;
+  _id: string;
 }
 
 export interface CreateProductRequest {
   name: string;
-  description: string;
-  price: number;
-  category: string;
+  unit: string;
+  unitPrice: number;
+  category?: string;
+  description?: string;
   isActive?: boolean;
 }
 
 export interface UpdateProductRequest extends Partial<CreateProductRequest> {
-  id: string;
+  _id: string;
 }
