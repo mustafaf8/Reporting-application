@@ -10,16 +10,16 @@ interface TemplateCardProps {
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
-  const createHref = `/proposals/create?templateId=${template.id}`;
-  const editHref = `/editor?templateId=${template.id}`;
+  const createHref = `/proposals/create?templateId=${template._id}`;
+  const editHref = `/editor?templateId=${template._id}`;
 
   return (
     <div className="group rounded-lg border border-gray-200 overflow-hidden bg-white hover:shadow-md transition-shadow">
       <Link href={editHref} className="block">
         <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
-          {template.preview ? (
+          {template.previewImageUrl ? (
             <img
-              src={template.preview}
+              src={template.previewImageUrl}
               alt={template.name}
               className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
             />
@@ -106,7 +106,7 @@ const TemplateSelectionPage: React.FC = () => {
       {!loading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map((t) => (
-            <TemplateCard key={t.id} template={t} />
+            <TemplateCard key={t._id} template={t} />
           ))}
         </div>
       )}

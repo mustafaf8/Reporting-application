@@ -45,7 +45,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               </div>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Güneş Enerjisi
+                  Superapp
                 </h1>
                 <p className="text-xs text-slate-500 -mt-1">Teklif Sistemi</p>
               </div>
