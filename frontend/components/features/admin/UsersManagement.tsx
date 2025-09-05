@@ -34,7 +34,7 @@ const UsersManagement: React.FC = () => {
       await api.patch(`/api/admin/users/${userId}/role`, { role: newRole });
       setUsers((prev) =>
         prev.map((user) =>
-          user.id === userId
+          user._id === userId
             ? { ...user, role: newRole as "user" | "admin" }
             : user
         )
@@ -52,7 +52,7 @@ const UsersManagement: React.FC = () => {
       });
       setUsers((prev) =>
         prev.map((user) =>
-          user.id === userId ? { ...user, isActive: !isActive } : user
+          user._id === userId ? { ...user, isActive: !isActive } : user
         )
       );
       toast.success("Kullanıcı durumu güncellendi");
@@ -116,7 +116,7 @@ const UsersManagement: React.FC = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
                         {user.name}
@@ -129,7 +129,7 @@ const UsersManagement: React.FC = () => {
                       <select
                         value={user.role}
                         onChange={(e) =>
-                          handleRoleChange(user.id, e.target.value)
+                          handleRoleChange(user._id, e.target.value)
                         }
                         className="border border-gray-300 rounded-md px-2 py-1 text-sm"
                       >
@@ -154,7 +154,7 @@ const UsersManagement: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <button
                         onClick={() =>
-                          handleToggleStatus(user.id, user.isActive !== false)
+                          handleToggleStatus(user._id, user.isActive !== false)
                         }
                         className={`px-3 py-1 text-sm rounded-md transition-colors ${
                           user.isActive !== false

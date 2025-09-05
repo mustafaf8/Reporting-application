@@ -53,8 +53,7 @@ const EditProposalPage: React.FC<EditProposalPageProps> = ({ proposalId }) => {
     setSaving(true);
 
     try {
-      const updateData: UpdateProposalRequest = {
-        id: proposalId,
+      const updateData = {
         ...formData,
       };
       await api.put(`/api/proposals/${proposalId}`, updateData);
@@ -196,18 +195,21 @@ const EditProposalPage: React.FC<EditProposalPageProps> = ({ proposalId }) => {
               Ürünler
             </label>
             <div className="border border-gray-200 rounded-md p-4 bg-gray-50">
-              {proposal.products && proposal.products.length > 0 ? (
+              {proposal.items && proposal.items.length > 0 ? (
                 <div className="space-y-2">
-                  {proposal.products.map((product, index) => (
+                  {proposal.items.map((it, index) => (
                     <div
                       key={index}
                       className="flex justify-between items-center text-sm"
                     >
                       <span>
-                        {product.product.name} x {product.quantity}
+                        {it.name} x {it.quantity}
                       </span>
                       <span className="font-medium">
-                        {product.totalPrice.toLocaleString("tr-TR")} ₺
+                        {(
+                          it.lineTotal ?? it.quantity * it.unitPrice
+                        ).toLocaleString("tr-TR")}{" "}
+                        ₺
                       </span>
                     </div>
                   ))}
@@ -215,7 +217,10 @@ const EditProposalPage: React.FC<EditProposalPageProps> = ({ proposalId }) => {
                     <div className="flex justify-between items-center font-semibold">
                       <span>Toplam:</span>
                       <span>
-                        {proposal.totalAmount.toLocaleString("tr-TR")} ₺
+                        {(proposal.grandTotal as number).toLocaleString(
+                          "tr-TR"
+                        )}{" "}
+                        ₺
                       </span>
                     </div>
                   </div>

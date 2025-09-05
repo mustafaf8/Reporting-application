@@ -27,7 +27,7 @@ const ProductsListPage: React.FC = () => {
       if (categoryFilter) params.append("category", categoryFilter);
 
       const { data } = await api.get(`/api/products?${params.toString()}`);
-      setProducts(data.products || []);
+      setProducts(data.items || data.products || []);
     } catch (err: any) {
       setError(err.response?.data?.message || "Ürünler yüklenemedi");
       toast.error("Ürünler yüklenirken hata oluştu");
@@ -123,7 +123,7 @@ const ProductsListPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
               <div
-                key={product.id}
+                key={product._id}
                 className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="p-6">
@@ -142,7 +142,7 @@ const ProductsListPage: React.FC = () => {
 
                   <div className="flex justify-between items-center">
                     <span className="text-2xl font-bold text-indigo-600">
-                      {product.price.toLocaleString("tr-TR")} ₺
+                      {product.unitPrice.toLocaleString("tr-TR")} ₺
                     </span>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${

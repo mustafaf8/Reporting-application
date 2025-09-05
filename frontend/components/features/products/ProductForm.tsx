@@ -54,15 +54,19 @@ const ProductForm: React.FC<ProductFormProps> = ({ productId }) => {
 
     try {
       if (productId) {
-        const updateData: UpdateProductRequest = {
-          id: productId,
+        const updateData = {
           ...formData,
         };
         await api.put(`/api/products/${productId}`, updateData);
         toast.success("Ürün başarıyla güncellendi");
       } else {
         const createData: CreateProductRequest = {
-          ...formData,
+          name: formData.name,
+          description: formData.description,
+          unit: "adet",
+          unitPrice: formData.price,
+          category: formData.category,
+          isActive: formData.isActive,
         };
         await api.post("/api/products", createData);
         toast.success("Ürün başarıyla oluşturuldu");
