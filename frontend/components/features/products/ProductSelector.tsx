@@ -18,7 +18,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>(
-    selectedProducts.map((p) => p.id)
+    selectedProducts.map((p) => p._id)
   );
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
   }, []);
 
   useEffect(() => {
-    const selected = products.filter((p) => selectedIds.includes(p.id));
+    const selected = products.filter((p) => selectedIds.includes(p._id));
     onProductSelect(selected);
   }, [selectedIds, products, onProductSelect]);
 
@@ -34,7 +34,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     try {
       setLoading(true);
       const response = await api.get("/api/products");
-      setProducts(response.data);
+      setProducts(response.data?.items || []);
     } catch (error) {
       console.error("Ürünler yüklenirken hata:", error);
     } finally {
@@ -50,7 +50,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     );
   };
 
-  const filteredProducts = products.filter(
+  const filteredProducts = (Array.isArray(products) ? products : []).filter(
     (product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -75,11 +75,11 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
       <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md">
         {filteredProducts.map((product) => (
           <div
-            key={product.id}
+            key={product._id}
             className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-              selectedIds.includes(product.id) ? "bg-indigo-50" : ""
+              selectedIds.includes(product._id) ? "bg-indigo-50" : ""
             }`}
-            onClick={() => handleProductToggle(product.id)}
+            onClick={() => handleProductToggle(product._id)}
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -96,8 +96,8 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               <div className="ml-2">
                 <input
                   type="checkbox"
-                  checked={selectedIds.includes(product.id)}
-                  onChange={() => handleProductToggle(product.id)}
+                  checked={selectedIds.includes(product._id)}
+                  onChange={() => handleProductToggle(product._id)}
                   className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                 />
               </div>
@@ -113,7 +113,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
           </div>
           <div className="space-y-1">
             {selectedProducts.map((product) => (
-              <div key={product.id} className="text-sm text-gray-600">
+              <div key={product._id} className="text-sm text-gray-600">
                 {product.name} - {product.unitPrice.toLocaleString("tr-TR")} ₺
               </div>
             ))}

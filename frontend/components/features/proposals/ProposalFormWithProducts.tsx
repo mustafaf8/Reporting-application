@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api/index";
 import toast from "react-hot-toast";
@@ -69,16 +69,15 @@ const ProposalFormWithProducts: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   // Ürün seçimi işlemi
-  const handleProductSelect = (products: Product[]) => {
+  const handleProductSelect = useCallback((products: Product[]) => {
     setSelectedProducts(products);
-    // Seçilen ürünleri items listesine ekle
     const newItems = products.map((product) => ({
       name: product.name,
       quantity: 1,
       unitPrice: product.unitPrice,
     }));
     setItems(newItems);
-  };
+  }, []);
 
   // Manuel malzeme ekleme
   const handleAddItem = () => {

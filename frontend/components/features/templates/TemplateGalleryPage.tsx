@@ -21,7 +21,7 @@ const TemplateGalleryPage: React.FC = () => {
     try {
       setLoading(true);
       const { data } = await api.get("/api/templates");
-      setTemplates(data.templates || []);
+      setTemplates(data.items || data.templates || []);
     } catch (err: any) {
       setError(err.response?.data?.message || "Şablonlar yüklenemedi");
       toast.error("Şablonlar yüklenirken hata oluştu");
@@ -65,13 +65,13 @@ const TemplateGalleryPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {templates.map((template) => (
               <div
-                key={template.id}
+                key={template._id}
                 className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
               >
                 <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
-                  {template.preview ? (
+                  {template.previewImageUrl ? (
                     <img
-                      src={template.preview}
+                      src={template.previewImageUrl}
                       alt={template.name}
                       className="w-full h-full object-cover"
                     />
@@ -120,13 +120,13 @@ const TemplateGalleryPage: React.FC = () => {
 
                     <div className="flex space-x-2">
                       <Link
-                        href={`/editor?templateId=${template.id}`}
+                        href={`/editor?templateId=${template._id}`}
                         className="px-3 py-1 text-sm bg-slate-100 hover:bg-slate-200 rounded transition-colors"
                       >
                         Düzenle
                       </Link>
                       <Link
-                        href={`/proposals/create?templateId=${template.id}`}
+                        href={`/proposals/create?templateId=${template._id}`}
                         className="px-3 py-1 text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded transition-colors"
                       >
                         Kullan

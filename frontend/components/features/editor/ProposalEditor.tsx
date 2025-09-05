@@ -151,10 +151,10 @@ const RightPanel: React.FC<RightPanelProps> = ({
             <label className="block text-sm text-slate-700 mb-1">Logo</label>
             <ProfileImageUpload
               currentImageUrl={customizations?.brand?.logoUrl}
-              onImageChange={(url: string) =>
+              onImageChange={(url: string | null) =>
                 setCustomizations((prev) => ({
                   ...prev,
-                  brand: { ...prev.brand, logoUrl: url },
+                  brand: { ...prev.brand, logoUrl: url || undefined },
                 }))
               }
               size="md"
