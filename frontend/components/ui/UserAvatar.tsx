@@ -18,7 +18,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   showName = false,
   showRole = false,
   className = "",
-  onClick = null,
+  onClick,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
@@ -27,7 +27,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   useEffect(() => {
     setImageError(false);
     setImageLoading(false);
-  }, [user?.avatar]);
+  }, [user?.profileImageUrl]);
 
   // Boyut sınıfları
   const sizeClasses = {
@@ -70,12 +70,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
 
   // Resim URL'ini oluştur (Cloudinary doğrudan URL)
   const getImageUrl = () => {
-    if (!user?.avatar) return null;
+    const avatar = (user as any)?.avatar as string | undefined;
+    const img = avatar || user?.profileImageUrl;
+    if (!img) return null;
     const ts = Date.now();
-    if (user.avatar.includes("res.cloudinary.com")) {
-      return `${user.avatar}?t=${ts}`;
+    if (img.includes("res.cloudinary.com")) {
+      return `${img}?t=${ts}`;
     }
-    return user.avatar;
+    return img;
   };
 
   // Kullanıcı adının ilk harfini al
@@ -97,7 +99,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
         ${onClick ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}
         ${className}
       `}
-      onClick={onClick}
+      onClick={onClick || undefined}
     >
       <div
         className={`
@@ -116,10 +118,10 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
         relative
       `}
       >
-        {user?.avatar && !imageError ? (
+        {getImageUrl() && !imageError ? (
           <img
-            src={getImageUrl()}
-            alt={`${user.name} profil fotoğrafı`}
+            src={getImageUrl() || undefined}
+            alt={`${user?.name || "Kullanıcı"} profil fotoğrafı`}
             className="w-full h-full object-cover"
             onLoadStart={() => {
               setImageLoading(true);
@@ -141,7 +143,9 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
              flex items-center justify-center 
              text-white font-semibold
              ${textSizes[size]}
-             ${user?.avatar && !imageError && !imageLoading ? "hidden" : "flex"}
+             ${
+               getImageUrl() && !imageError && !imageLoading ? "hidden" : "flex"
+             }
            `}
         >
           {imageLoading ? (

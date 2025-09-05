@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
 import UserAvatar from "./UserAvatar";
+import { User } from "@/types";
 import ConfirmationModal from "./ConfirmationModal";
 
 interface ProfileImageUploadProps {
@@ -115,14 +116,23 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
 
   // Geçici kullanıcı objesi oluştur (preview için)
   const tempUser = {
-    id: "",
+    _id: "",
     name: "Kullanıcı",
     email: "",
     role: "user" as const,
-    avatar: previewUrl || currentImageUrl,
-    createdAt: "",
-    updatedAt: "",
-  };
+    position: "",
+    profileImageUrl: previewUrl || currentImageUrl || undefined,
+    isActive: true,
+    isApproved: true,
+    subscription: {
+      plan: "free",
+      status: "active",
+      customerId: "",
+      subscriptionId: "",
+    },
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as User;
 
   return (
     <div className="flex flex-col items-center space-y-4">

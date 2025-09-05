@@ -174,7 +174,7 @@ const ProposalFormWithProducts: React.FC = () => {
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
-      link.parentNode.removeChild(link);
+      link.remove();
       window.URL.revokeObjectURL(url);
 
       toast.success("PDF başarıyla oluşturuldu ve indirildi!");

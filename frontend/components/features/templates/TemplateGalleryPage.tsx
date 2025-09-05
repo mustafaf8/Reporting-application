@@ -108,16 +108,6 @@ const TemplateGalleryPage: React.FC = () => {
                   )}
 
                   <div className="flex items-center justify-between">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        template.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {template.isActive ? "Aktif" : "Pasif"}
-                    </span>
-
                     <div className="flex space-x-2">
                       <Link
                         href={`/editor?templateId=${template._id}`}

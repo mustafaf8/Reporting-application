@@ -81,7 +81,7 @@ const ProposalsListPage: React.FC = () => {
       // Local state'i güncelle
       setItems((prev) =>
         prev.map((proposal) =>
-          proposal.id === proposalId
+          proposal._id === proposalId
             ? { ...proposal, status: newStatus as any }
             : proposal
         )
@@ -99,14 +99,14 @@ const ProposalsListPage: React.FC = () => {
   const handleGeneratePdf = async (proposal: Proposal) => {
     try {
       const payload = {
-        proposalId: proposal.id,
-        customerName: proposal.clientName,
-        items: proposal.products,
-        vatRate: 0.18, // Default VAT rate
-        discountRate: 0,
-        extraCosts: 0,
+        proposalId: proposal._id,
+        customerName: proposal.customerName,
+        items: proposal.items,
+        vatRate: proposal.vatRate ?? 0,
+        discountRate: proposal.discountRate ?? 0,
+        extraCosts: proposal.extraCosts ?? 0,
         status: proposal.status,
-        customizations: {},
+        customizations: proposal.customizations ?? {},
       };
       const isPro = (user?.role || "user") === "admin"; // Simplified check
       const endpoint = isPro ? "/api/generate-pdf-hq" : "/api/generate-pdf";
@@ -118,7 +118,7 @@ const ProposalsListPage: React.FC = () => {
         // Optimistic local mark
         setItems((prev) =>
           prev.map((p) =>
-            p.id === proposal.id
+            p._id === proposal._id
               ? {
                   ...p,
                   // Add PDF status to proposal if needed
@@ -260,12 +260,12 @@ const ProposalsListPage: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {items.map((proposal) => (
                   <tr
-                    key={proposal.id}
+                    key={proposal._id}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {proposal.clientName}
+                        {proposal.customerName}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -281,15 +281,15 @@ const ProposalsListPage: React.FC = () => {
                       {new Date(proposal.createdAt).toLocaleDateString("tr-TR")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
-                      {proposal.totalAmount?.toLocaleString("tr-TR")} ₺
+                      {proposal.grandTotal?.toLocaleString("tr-TR")} ₺
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <select
                         value={proposal.status}
                         onChange={(e) =>
-                          handleStatusChange(proposal.id, e.target.value)
+                          handleStatusChange(proposal._id, e.target.value)
                         }
-                        disabled={updatingStatus === proposal.id}
+                        disabled={updatingStatus === proposal._id}
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:opacity-50"
                       >
                         <option value="draft">Taslak</option>
@@ -306,13 +306,13 @@ const ProposalsListPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex justify-center space-x-2">
                         <Link
-                          href={`/proposals/${proposal.id}`}
+                          href={`/proposals/${proposal._id}`}
                           className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 transition-colors"
                         >
                           Görüntüle
                         </Link>
                         <Link
-                          href={`/proposals/${proposal.id}/edit`}
+                          href={`/proposals/${proposal._id}/edit`}
                           className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 transition-colors"
                         >
                           Düzenle
