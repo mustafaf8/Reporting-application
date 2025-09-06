@@ -28,4 +28,5 @@ export default {
   success: "Başarılı",
   warning: "Uyarı",
   info: "Bilgi",
+  "new proposal": "Yeni Teklif",
 };

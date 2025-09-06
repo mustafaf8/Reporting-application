@@ -10,11 +10,11 @@ interface TemplateCardProps {
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
-  const createHref = `/proposals/create?templateId=${template._id}`;
+  const editorHref = `/editor?templateId=${template._id}`;
 
   return (
     <div className="group rounded-lg border border-gray-200 overflow-hidden bg-white hover:shadow-md transition-shadow">
-      <Link href={createHref} className="block">
+      <Link href={editorHref} className="block">
         <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
           {template.previewImageUrl ? (
             <img
@@ -40,7 +40,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
         )}
         <div className="mt-3">
           <Link
-            href={createHref}
+            href={editorHref}
             className="w-full px-3 py-2 text-center text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded font-medium block"
           >
             Kullan
