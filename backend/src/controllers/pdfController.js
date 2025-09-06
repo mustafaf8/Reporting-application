@@ -26,19 +26,20 @@ function readImageAsDataUrl(filename) {
   }
 }
 
-const { Queue } = require("bullmq");
-const IORedis = require("ioredis");
+// Redis and BullMQ temporarily disabled
+// const { Queue } = require("bullmq");
+// const IORedis = require("ioredis");
 
-const USE_REDIS = process.env.USE_REDIS === "true";
-let pdfQueue = null;
-function getQueue() {
-  if (!USE_REDIS) return null;
-  if (pdfQueue) return pdfQueue;
-  const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
-  const connection = new IORedis(REDIS_URL);
-  pdfQueue = new Queue("pdf-generation", { connection });
-  return pdfQueue;
-}
+// const USE_REDIS = process.env.USE_REDIS === "true";
+// let pdfQueue = null;
+// function getQueue() {
+//   if (!USE_REDIS) return null;
+//   if (pdfQueue) return pdfQueue;
+//   const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+//   const connection = new IORedis(REDIS_URL);
+//   pdfQueue = new Queue("pdf-generation", { connection });
+//   return pdfQueue;
+// }
 
 async function generateProposalPdf(req, res) {
   try {
@@ -165,7 +166,7 @@ async function generateFromBlockEditor(req, res) {
     logger.error("Error generating PDF from block editor", {
       error: error.message,
       templateId: req.body.templateId,
-      userId: req.user?.id
+      userId: req.user?.id,
     });
     return res.error("PDF oluşturulurken hata oluştu", 500);
   }
@@ -196,7 +197,7 @@ async function generateFromEJSTemplate(req, res) {
     logger.error("Error generating PDF from EJS template", {
       error: error.message,
       templateId: req.body.templateId,
-      userId: req.user?.id
+      userId: req.user?.id,
     });
     return res.error("PDF oluşturulurken hata oluştu", 500);
   }
@@ -227,7 +228,7 @@ async function generatePDF(req, res) {
     logger.error("Error generating PDF", {
       error: error.message,
       templateId: req.body.templateId,
-      userId: req.user?.id
+      userId: req.user?.id,
     });
     return res.error("PDF oluşturulurken hata oluştu", 500);
   }
@@ -258,7 +259,7 @@ async function generatePreview(req, res) {
     logger.error("Error generating PDF preview", {
       error: error.message,
       templateId: req.body.templateId,
-      userId: req.user?.id
+      userId: req.user?.id,
     });
     return res.error("PDF önizleme oluşturulurken hata oluştu", 500);
   }
@@ -279,7 +280,7 @@ async function generateMultiplePDFs(req, res) {
   } catch (error) {
     logger.error("Error generating multiple PDFs", {
       error: error.message,
-      userId: req.user?.id
+      userId: req.user?.id,
     });
     return res.error("Toplu PDF oluşturulurken hata oluştu", 500);
   }
@@ -294,28 +295,33 @@ async function detectTemplateType(req, res) {
       return res.error("Şablon ID'si gerekli", 400);
     }
 
-    const templateType = await pdfGenerationService.detectTemplateType(templateId);
+    const templateType = await pdfGenerationService.detectTemplateType(
+      templateId
+    );
 
-    res.success({
-      templateId,
-      templateType
-    }, "Şablon türü tespit edildi");
+    res.success(
+      {
+        templateId,
+        templateType,
+      },
+      "Şablon türü tespit edildi"
+    );
   } catch (error) {
     logger.error("Error detecting template type", {
       error: error.message,
       templateId: req.params.templateId,
-      userId: req.user?.id
+      userId: req.user?.id,
     });
     return res.error("Şablon türü tespit edilirken hata oluştu", 500);
   }
 }
 
-module.exports = { 
+module.exports = {
   generateProposalPdf,
   generateFromBlockEditor,
   generateFromEJSTemplate,
   generatePDF,
   generatePreview,
   generateMultiplePDFs,
-  detectTemplateType
+  detectTemplateType,
 };

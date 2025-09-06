@@ -4,7 +4,7 @@ const path = require("path");
 // Log seviyesini ortam değişkeninden al
 const logLevel =
   process.env.LOG_LEVEL ||
-  (process.env.NODE_ENV === "production" ? "warn" : "info");
+  (process.env.NODE_ENV === "production" ? "warn" : "debug");
 
 const logger = createLogger({
   level: logLevel,

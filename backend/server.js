@@ -15,6 +15,13 @@ const {
   securityScan,
 } = require("./src/middleware/security");
 const { specs, swaggerUi } = require("./src/config/swagger");
+const {
+  errorHandler,
+  notFoundHandler,
+  validationErrorHandler,
+  jwtErrorHandler,
+  mongoErrorHandler,
+} = require("./src/middleware/errorHandler");
 
 dotenv.config();
 
@@ -138,78 +145,14 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Global hata yönetimi middleware'i
-app.use((err, req, res, next) => {
-  // Hata loglama
-  logger.error("Global error handler:", {
-    error: err.message,
-    stack: err.stack,
-    url: req.url,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get("User-Agent"),
-  });
+// Gelişmiş hata yönetimi middleware'leri
+app.use(validationErrorHandler);
+app.use(jwtErrorHandler);
+app.use(mongoErrorHandler);
+app.use(errorHandler);
 
-  // Mongoose validation hatası
-  if (err.name === "ValidationError") {
-    const errors = Object.values(err.errors).map((e) => e.message);
-    logger.warn("Validation error:", { errors, url: req.url });
-    return res.status(400).json({
-      success: false,
-      message: "Veri doğrulama hatası",
-      errors,
-    });
-  }
-
-  // Mongoose duplicate key hatası
-  if (err.code === 11000) {
-    const field = Object.keys(err.keyValue)[0];
-    logger.warn("Duplicate key error:", { field, value: err.keyValue[field] });
-    return res.status(400).json({
-      success: false,
-      message: `${field} zaten kullanımda`,
-    });
-  }
-
-  // JWT hatası
-  if (err.name === "JsonWebTokenError") {
-    logger.security("Invalid JWT token attempt", {
-      ip: req.ip,
-      userAgent: req.get("User-Agent"),
-    });
-    return res.status(401).json({
-      success: false,
-      message: "Geçersiz token",
-    });
-  }
-
-  // JWT token expired hatası
-  if (err.name === "TokenExpiredError") {
-    logger.security("Expired JWT token attempt", {
-      ip: req.ip,
-      userAgent: req.get("User-Agent"),
-    });
-    return res.status(401).json({
-      success: false,
-      message: "Token süresi dolmuş",
-    });
-  }
-
-  // Cast error (ObjectId geçersiz)
-  if (err.name === "CastError") {
-    logger.warn("Invalid ObjectId format:", { value: err.value, url: req.url });
-    return res.status(400).json({
-      success: false,
-      message: "Geçersiz ID formatı",
-    });
-  }
-
-  // Varsayılan hata
-  res.status(500).json({
-    success: false,
-    message: "Sunucu hatası",
-  });
-});
+// 404 handler
+app.use(notFoundHandler);
 
 // Ortam değişkenlerini kontrol et
 if (!process.env.JWT_SECRET && process.env.NODE_ENV === "production") {

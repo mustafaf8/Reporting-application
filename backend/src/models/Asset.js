@@ -170,7 +170,7 @@ assetSchema.methods.getThumbnailUrl = function (size = 150) {
 // Index'ler
 assetSchema.index({ owner: 1, uploadType: 1 });
 assetSchema.index({ blockId: 1 });
-assetSchema.index({ publicId: 1 });
+// publicId already has unique: true, no need for separate index
 assetSchema.index({ mimeType: 1 });
 assetSchema.index({ createdAt: -1 });
 assetSchema.index({ lastUsedAt: -1 });

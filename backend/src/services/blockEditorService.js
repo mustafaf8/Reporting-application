@@ -13,18 +13,70 @@ class BlockEditorService {
   // Blokları HTML'e dönüştürme
   async renderBlocksToHTML(blocks, globalStyles, canvasSize, data = {}) {
     try {
-      let html = "";
+      // Geliştirme ortamı için detaylı loglama
+      logger.debug("Starting block rendering", {
+        blockCount: blocks?.length || 0,
+        hasGlobalStyles: !!globalStyles,
+        hasCanvasSize: !!canvasSize,
+        hasData: !!data,
+        blocks: blocks?.map((b) => ({ type: b?.type, id: b?.id })) || [],
+      });
 
-      for (const block of blocks) {
-        const blockHTML = await this.renderBlock(block, globalStyles, data);
-        html += blockHTML;
+      if (!Array.isArray(blocks)) {
+        throw new Error("Blocks must be an array");
       }
 
-      return this.wrapInDocument(html, globalStyles, canvasSize);
+      let html = "";
+
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+
+        if (!block) {
+          logger.warn(`Block at index ${i} is null or undefined`);
+          continue;
+        }
+
+        if (!block.type) {
+          logger.warn(`Block at index ${i} has no type`, { block });
+          continue;
+        }
+
+        try {
+          const blockHTML = await this.renderBlock(block, globalStyles, data);
+          html += blockHTML;
+        } catch (blockError) {
+          logger.error(`Error rendering block at index ${i}`, {
+            error: blockError.message,
+            blockType: block.type,
+            blockId: block.id,
+            blockIndex: i,
+          });
+
+          // Geliştirme ortamında hata bloğu ekle
+          if (process.env.NODE_ENV === "development") {
+            html += `<div style="color: red; padding: 8px; border: 1px solid red; border-radius: 4px; margin: 4px 0;">
+              <strong>Block Error (${block.type}):</strong> ${blockError.message}
+            </div>`;
+          }
+        }
+      }
+
+      const wrappedHTML = this.wrapInDocument(html, globalStyles, canvasSize);
+
+      logger.debug("Block rendering completed", {
+        htmlLength: wrappedHTML.length,
+        renderedBlocks: blocks.length,
+      });
+
+      return wrappedHTML;
     } catch (error) {
       logger.error("Error rendering blocks to HTML", {
         error: error.message,
-        blockCount: blocks.length,
+        stack: error.stack,
+        blockCount: blocks?.length || 0,
+        globalStyles,
+        canvasSize,
+        data,
       });
       throw error;
     }
@@ -406,9 +458,14 @@ class BlockEditorService {
   }
 
   // HTML'i belge içine sarma
-  wrapInDocument(html, globalStyles, canvasSize) {
-    const { width, height, unit } = canvasSize;
-    const { fontFamily, fontSize, backgroundColor, textColor } = globalStyles;
+  wrapInDocument(html, globalStyles = {}, canvasSize = {}) {
+    const { width = 800, height = 600, unit = "px" } = canvasSize;
+    const {
+      fontFamily = "Inter, sans-serif",
+      fontSize = 16,
+      backgroundColor = "#f8fafc",
+      textColor = "#1f2937",
+    } = globalStyles;
 
     return `
       <!DOCTYPE html>

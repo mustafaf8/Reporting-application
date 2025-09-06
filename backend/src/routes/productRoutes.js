@@ -3,27 +3,9 @@ const Product = require("../models/Product");
 const auth = require("../middleware/auth");
 const logger = require("../config/logger");
 const { validate, schemas } = require("../middleware/validation");
+const cacheService = require("../services/cacheService");
 
 const router = express.Router();
-const { createClient } = require("redis");
-const USE_REDIS = process.env.USE_REDIS === "true";
-let redisClient = null;
-if (USE_REDIS) {
-  redisClient = createClient({
-    url: process.env.REDIS_URL || "redis://127.0.0.1:6379",
-  });
-  redisClient.on("error", (err) =>
-    logger.error("Redis error", { error: err.message })
-  );
-  (async () => {
-    try {
-      await redisClient.connect();
-    } catch (e) {
-      // Redis bağlantısı zorunlu değil, cache devre dışı kalabilir
-    }
-  })();
-}
-const isRedisReady = () => USE_REDIS && redisClient?.isReady === true;
 
 // Create
 router.post("/", auth, validate(schemas.createProduct), async (req, res) => {
@@ -68,13 +50,10 @@ router.get(
       const cacheKey = `products:list:${req.user.id}:${q || ""}:${
         category || ""
       }:${isActive || "all"}:${page}:${limit}`;
-      if (isRedisReady()) {
-        try {
-          const cached = await redisClient.get(cacheKey);
-          if (cached) {
-            return res.json(JSON.parse(cached));
-          }
-        } catch (_) {}
+
+      const cached = await cacheService.get(cacheKey);
+      if (cached) {
+        return res.json(cached);
       }
 
       const skip = (Number(page) - 1) * Number(limit);
@@ -93,11 +72,8 @@ router.get(
         page: Number(page),
         limit: Number(limit),
       };
-      if (isRedisReady()) {
-        try {
-          await redisClient.set(cacheKey, JSON.stringify(payload), { EX: 60 });
-        } catch (_) {}
-      }
+
+      await cacheService.set(cacheKey, payload, 60); // 60 saniye cache
       return res.json(payload);
     } catch (err) {
       logger.error("Product list error:", {
@@ -218,12 +194,9 @@ router.get("/categories/list", auth, async (req, res) => {
     const isAdmin = req.user?.role === "admin";
     const baseKey = isAdmin ? "all" : req.user.id;
     const cacheKey = `products:categories:${baseKey}`;
-    if (isRedisReady()) {
-      try {
-        const cached = await redisClient.get(cacheKey);
-        if (cached) return res.json(JSON.parse(cached));
-      } catch (_) {}
-    }
+
+    const cached = await cacheService.get(cacheKey);
+    if (cached) return res.json(cached);
 
     const match = { category: { $nin: [null, ""] } };
     if (!isAdmin) {
@@ -231,13 +204,8 @@ router.get("/categories/list", auth, async (req, res) => {
     }
 
     const categories = await Product.distinct("category", match);
-    if (isRedisReady()) {
-      try {
-        await redisClient.set(cacheKey, JSON.stringify(categories), {
-          EX: 300,
-        });
-      } catch (_) {}
-    }
+
+    await cacheService.set(cacheKey, categories, 300); // 5 dakika cache
     return res.json(categories);
   } catch (err) {
     logger.error("Categories list error:", {

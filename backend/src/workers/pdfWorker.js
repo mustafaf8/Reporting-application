@@ -1,5 +1,6 @@
-const { Queue, Worker, QueueEvents, JobsOptions } = require("bullmq");
-const IORedis = require("ioredis");
+// Redis and BullMQ temporarily disabled
+// const { Queue, Worker, QueueEvents, JobsOptions } = require("bullmq");
+// const IORedis = require("ioredis");
 const mongoose = require("mongoose");
 const path = require("path");
 const fs = require("fs");
@@ -8,11 +9,11 @@ const puppeteer = require("puppeteer");
 const logger = require("../config/logger");
 const Proposal = require("../models/Proposal");
 
-const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+// const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/rmr_teklif";
 
-const connection = new IORedis(REDIS_URL);
+// const connection = new IORedis(REDIS_URL);
 
 function getTemplatePath(ejsFile) {
   const file =
@@ -83,40 +84,22 @@ async function main() {
   await mongoose.connect(MONGODB_URI);
   logger.info("PDF worker connected to MongoDB");
 
-  const worker = new Worker(
-    "pdf-generation",
-    async (job) => {
-      logger.info("PDF job received", { jobId: job.id });
-      const pdfBuffer = await renderPdf(job.data);
-      // İsteğe bağlı: PDF'i bir storage'a yazabilir veya Proposal'a bir alan ekleyebilirsin.
-      if (job.data.proposalId) {
-        await Proposal.findByIdAndUpdate(job.data.proposalId, {
-          updatedAt: new Date(),
-          // Örn: customizations içine bir işaret koy
-          customizations: {
-            ...(job.data.payload?.customizations || {}),
-            pdfStatus: "ready",
-          },
-        });
-      }
-      logger.info("PDF job completed", { jobId: job.id });
-      return { ok: true };
-    },
-    { connection }
+  // Redis and BullMQ temporarily disabled
+  logger.info(
+    "PDF worker started (Redis disabled - queue processing unavailable)"
   );
 
-  worker.on("failed", (job, err) => {
-    logger.error("PDF job failed", { jobId: job?.id, error: err?.message });
+  // Keep the process alive but don't start the worker
+  process.on("SIGINT", async () => {
+    logger.info("PDF worker shutting down");
+    await mongoose.disconnect();
+    process.exit(0);
   });
 
-  const queueEvents = new QueueEvents("pdf-generation", { connection });
-  await queueEvents.waitUntilReady();
-  queueEvents.on("completed", ({ jobId }) =>
-    logger.info("PDF job completed", { jobId })
-  );
-  queueEvents.on("failed", ({ jobId, failedReason }) =>
-    logger.error("PDF job failed", { jobId, failedReason })
-  );
+  // Keep the process running
+  setInterval(() => {
+    // Just keep alive
+  }, 60000); // Check every minute
 }
 
 main().catch((err) => {
