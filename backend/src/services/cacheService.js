@@ -1,4 +1,4 @@
-const Redis = require("ioredis");
+// const Redis = require("ioredis"); // Redis temporarily disabled
 const logger = require("../config/logger");
 
 class CacheService {
@@ -6,45 +6,24 @@ class CacheService {
     this.redis = null;
     this.isConnected = false;
     this.defaultTTL = 3600; // 1 saat
+    this.redisDisabled = true; // Redis is temporarily disabled
   }
 
-  // Redis bağlantısını başlat
+  // Redis bağlantısını başlat - DISABLED
   async initialize() {
-    try {
-      this.redis = new Redis({
-        host: process.env.REDIS_HOST || "localhost",
-        port: process.env.REDIS_PORT || 6379,
-        password: process.env.REDIS_PASSWORD,
-        db: process.env.REDIS_DB || 0,
-        retryDelayOnFailover: 100,
-        maxRetriesPerRequest: 3,
-        lazyConnect: true,
-      });
-
-      this.redis.on("connect", () => {
-        this.isConnected = true;
-        logger.info("Redis connected successfully");
-      });
-
-      this.redis.on("error", (error) => {
-        this.isConnected = false;
-        logger.error("Redis connection error", { error: error.message });
-      });
-
-      this.redis.on("close", () => {
-        this.isConnected = false;
-        logger.warn("Redis connection closed");
-      });
-
-      await this.redis.connect();
-    } catch (error) {
-      logger.error("Failed to initialize Redis", { error: error.message });
-      this.isConnected = false;
-    }
+    logger.info(
+      "Redis is temporarily disabled - caching functionality is not available"
+    );
+    this.isConnected = false;
+    this.redisDisabled = true;
+    return;
   }
 
   // Bağlantı durumunu kontrol et
   isReady() {
+    if (this.redisDisabled) {
+      return false;
+    }
     return this.isConnected && this.redis;
   }
 
@@ -55,6 +34,11 @@ class CacheService {
 
   // Veri kaydetme
   async set(key, value, ttl = this.defaultTTL) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache set", { key });
+      return false;
+    }
+
     if (!this.isReady()) {
       logger.warn("Redis not available, skipping cache set", { key });
       return false;
@@ -74,6 +58,11 @@ class CacheService {
 
   // Veri alma
   async get(key) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache get", { key });
+      return null;
+    }
+
     if (!this.isReady()) {
       logger.warn("Redis not available, skipping cache get", { key });
       return null;
@@ -98,6 +87,11 @@ class CacheService {
 
   // Veri silme
   async del(key) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache delete", { key });
+      return false;
+    }
+
     if (!this.isReady()) {
       logger.warn("Redis not available, skipping cache delete", { key });
       return false;
@@ -115,6 +109,13 @@ class CacheService {
 
   // Çoklu veri silme
   async delPattern(pattern) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache pattern delete", {
+        pattern,
+      });
+      return false;
+    }
+
     if (!this.isReady()) {
       logger.warn("Redis not available, skipping cache pattern delete", {
         pattern,
@@ -144,6 +145,11 @@ class CacheService {
 
   // TTL ayarlama
   async expire(key, ttl) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache expire", { key, ttl });
+      return false;
+    }
+
     if (!this.isReady()) {
       return false;
     }
@@ -160,6 +166,11 @@ class CacheService {
 
   // TTL sorgulama
   async ttl(key) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache TTL", { key });
+      return -1;
+    }
+
     if (!this.isReady()) {
       return -1;
     }
@@ -174,6 +185,11 @@ class CacheService {
 
   // Hash işlemleri
   async hset(key, field, value) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache hash set", { key, field });
+      return false;
+    }
+
     if (!this.isReady()) {
       return false;
     }
@@ -194,6 +210,11 @@ class CacheService {
   }
 
   async hget(key, field) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache hash get", { key, field });
+      return null;
+    }
+
     if (!this.isReady()) {
       return null;
     }
@@ -215,6 +236,14 @@ class CacheService {
   }
 
   async hdel(key, field) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache hash delete", {
+        key,
+        field,
+      });
+      return false;
+    }
+
     if (!this.isReady()) {
       return false;
     }
@@ -239,6 +268,14 @@ class CacheService {
 
   // List işlemleri
   async lpush(key, ...values) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache list push", {
+        key,
+        count: values.length,
+      });
+      return false;
+    }
+
     if (!this.isReady()) {
       return false;
     }
@@ -255,6 +292,15 @@ class CacheService {
   }
 
   async lrange(key, start, stop) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache list range", {
+        key,
+        start,
+        stop,
+      });
+      return [];
+    }
+
     if (!this.isReady()) {
       return [];
     }
@@ -275,6 +321,14 @@ class CacheService {
 
   // Set işlemleri
   async sadd(key, ...members) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache set add", {
+        key,
+        count: members.length,
+      });
+      return false;
+    }
+
     if (!this.isReady()) {
       return false;
     }
@@ -290,6 +344,11 @@ class CacheService {
   }
 
   async smembers(key) {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache set members", { key });
+      return [];
+    }
+
     if (!this.isReady()) {
       return [];
     }
@@ -410,6 +469,15 @@ class CacheService {
 
   // Cache istatistikleri
   async getStats() {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, returning disabled stats");
+      return {
+        connected: false,
+        disabled: true,
+        message: "Redis is temporarily disabled",
+      };
+    }
+
     if (!this.isReady()) {
       return null;
     }
@@ -431,6 +499,11 @@ class CacheService {
 
   // Cache temizleme
   async flushAll() {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, skipping cache flush");
+      return false;
+    }
+
     if (!this.isReady()) {
       return false;
     }
@@ -447,6 +520,11 @@ class CacheService {
 
   // Bağlantıyı kapat
   async close() {
+    if (this.redisDisabled) {
+      logger.debug("Redis disabled, no connection to close");
+      return;
+    }
+
     if (this.redis) {
       await this.redis.quit();
       this.isConnected = false;
