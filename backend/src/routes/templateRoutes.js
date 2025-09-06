@@ -130,7 +130,16 @@ router.post("/:id/preview", async (req, res) => {
         discountRate: Number(payload.discountRate || 0),
         extraCosts: Number(payload.extraCosts || 0),
         grandTotal: 100,
-        company: payload.company || {},
+        company: {
+          ...payload.company,
+          ...payload.customizations?.company,
+          logoUrl:
+            payload.customizations?.brand?.logoUrl || payload.company?.logoUrl,
+          heroImage:
+            payload.customizations?.images?.hero || payload.company?.heroImage,
+          gallery:
+            payload.customizations?.images?.gallery || payload.company?.gallery,
+        },
         customer: payload.customer || {},
         issuer: payload.issuer || {},
         aboutRmr: payload.aboutRmr,

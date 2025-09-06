@@ -11,11 +11,10 @@ interface TemplateCardProps {
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
   const createHref = `/proposals/create?templateId=${template._id}`;
-  const editHref = `/editor?templateId=${template._id}`;
 
   return (
     <div className="group rounded-lg border border-gray-200 overflow-hidden bg-white hover:shadow-md transition-shadow">
-      <Link href={editHref} className="block">
+      <Link href={createHref} className="block">
         <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
           {template.previewImageUrl ? (
             <img
@@ -39,16 +38,10 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
             {template.description}
           </div>
         )}
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Link
-            href={editHref}
-            className="px-3 py-2 text-center text-sm bg-slate-100 hover:bg-slate-200 rounded"
-          >
-            Düzenle
-          </Link>
+        <div className="mt-3">
           <Link
             href={createHref}
-            className="px-3 py-2 text-center text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded"
+            className="w-full px-3 py-2 text-center text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded font-medium block"
           >
             Kullan
           </Link>

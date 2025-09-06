@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/contexts/AuthContext";
 import { api } from "@/lib/api";
 import toast from "react-hot-toast";
@@ -41,6 +42,7 @@ interface EditForm {
 
 const ProfilePage: React.FC = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [performanceData, setPerformanceData] =
     useState<PerformanceData | null>(null);
@@ -142,11 +144,36 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleManageSubscription = async () => {
+    // Eğer customerId yoksa pricing sayfasına yönlendir
+    if (!profileData?.user?.subscription?.customerId) {
+      router.push("/pricing");
+      return;
+    }
+
     try {
       const { data } = await api.post("/api/billing/customer-portal");
-      if (data?.url) window.location.href = data.url;
-    } catch (err) {
-      toast.error("Abonelik portalı açılamadı");
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Portal URL'i alınamadı");
+      }
+    } catch (err: any) {
+      console.error("Subscription portal error:", err);
+      const errorMessage =
+        err.response?.data?.message || "Abonelik portalı açılamadı";
+
+      if (errorMessage.includes("Abonelik bulunamadı")) {
+        toast.error(
+          "Henüz aktif bir aboneliğiniz bulunmuyor. Önce bir plan seçin."
+        );
+        router.push("/pricing");
+      } else if (errorMessage.includes("Stripe yapılandırılmadı")) {
+        toast.error(
+          "Ödeme sistemi yapılandırılmamış. Lütfen daha sonra tekrar deneyin."
+        );
+      } else {
+        toast.error(errorMessage);
+      }
     }
   };
 
@@ -255,13 +282,56 @@ const ProfilePage: React.FC = () => {
             </button>
           )}
         </div>
-        <div className="mb-4">
-          <button
-            onClick={handleManageSubscription}
-            className="px-4 py-2 bg-slate-700 text-white rounded-md hover:bg-slate-800 transition-colors"
-          >
-            Aboneliği Yönet
-          </button>
+        {/* Abonelik Bilgileri */}
+        <div className="mb-6 p-4 bg-slate-50 rounded-lg">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            Abonelik Bilgileri
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Plan
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {profileData?.user?.subscription?.plan || "Free"}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Durum
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {profileData?.user?.subscription?.status || "Aktif değil"}
+              </p>
+            </div>
+            {profileData?.user?.subscription?.currentPeriodEnd && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Sonraki Faturalandırma
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {new Date(
+                    profileData.user.subscription.currentPeriodEnd
+                  ).toLocaleDateString("tr-TR")}
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="mt-4">
+            <button
+              onClick={handleManageSubscription}
+              className="px-4 py-2 bg-slate-700 text-white rounded-md hover:bg-slate-800 transition-colors"
+            >
+              {profileData?.user?.subscription?.customerId
+                ? "Aboneliği Yönet"
+                : "Plan Seç"}
+            </button>
+            {!profileData?.user?.subscription?.customerId && (
+              <p className="mt-2 text-sm text-gray-500">
+                Abonelik yönetimi için önce bir plan seçin.
+              </p>
+            )}
+          </div>
         </div>
 
         {!isEditing ? (
