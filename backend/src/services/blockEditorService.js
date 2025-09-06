@@ -2,6 +2,7 @@ const ejs = require("ejs");
 const path = require("path");
 const fs = require("fs").promises;
 const logger = require("../config/logger");
+const blockRegistry = require("./blockRegistry");
 
 class BlockEditorService {
   constructor() {
@@ -36,40 +37,57 @@ class BlockEditorService {
     // Global stilleri blok stilleriyle birleştir
     const combinedStyles = this.mergeStyles(globalStyles, styles);
 
-    switch (type) {
-      case "text":
-        return this.renderTextBlock(content, combinedStyles, data);
+    try {
+      // Önce block registry'den render etmeyi dene
+      if (blockRegistry.hasBlock(type)) {
+        const blockData = { ...block, styles: combinedStyles };
+        const result = await blockRegistry.renderBlock(type, blockData, data);
+        return result;
+      }
 
-      case "heading":
-        return this.renderHeadingBlock(content, combinedStyles, data);
+      // Fallback: Eski render metodları
+      switch (type) {
+        case "text":
+          return this.renderTextBlock(content, combinedStyles, data);
 
-      case "image":
-        return this.renderImageBlock(content, combinedStyles, data);
+        case "heading":
+          return this.renderHeadingBlock(content, combinedStyles, data);
 
-      case "table":
-        return this.renderTableBlock(content, combinedStyles, data);
+        case "image":
+          return this.renderImageBlock(content, combinedStyles, data);
 
-      case "spacer":
-        return this.renderSpacerBlock(content, combinedStyles);
+        case "table":
+          return this.renderTableBlock(content, combinedStyles, data);
 
-      case "divider":
-        return this.renderDividerBlock(content, combinedStyles);
+        case "spacer":
+          return this.renderSpacerBlock(content, combinedStyles);
 
-      case "customer":
-        return this.renderCustomerBlock(content, combinedStyles, data);
+        case "divider":
+          return this.renderDividerBlock(content, combinedStyles);
 
-      case "company":
-        return this.renderCompanyBlock(content, combinedStyles, data);
+        case "customer":
+          return this.renderCustomerBlock(content, combinedStyles, data);
 
-      case "pricing":
-        return this.renderPricingBlock(content, combinedStyles, data);
+        case "company":
+          return this.renderCompanyBlock(content, combinedStyles, data);
 
-      case "signature":
-        return this.renderSignatureBlock(content, combinedStyles, data);
+        case "pricing":
+          return this.renderPricingBlock(content, combinedStyles, data);
 
-      default:
-        logger.warn("Unknown block type", { type });
-        return `<div class="unknown-block">Bilinmeyen blok türü: ${type}</div>`;
+        case "signature":
+          return this.renderSignatureBlock(content, combinedStyles, data);
+
+        default:
+          logger.warn("Unknown block type", { type });
+          return `<div class="unknown-block">Bilinmeyen blok türü: ${type}</div>`;
+      }
+    } catch (error) {
+      logger.error(`Error rendering block type ${type}`, {
+        error: error.message,
+        block,
+        data,
+      });
+      return `<div style="color: red; padding: 8px; border: 1px solid red; border-radius: 4px;">Error rendering block: ${error.message}</div>`;
     }
   }
 

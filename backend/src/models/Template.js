@@ -127,6 +127,15 @@ const templateSchema = new mongoose.Schema(
     },
     tags: [{ type: String }],
     isTemplate: { type: Boolean, default: false }, // Sistem şablonu mu, kullanıcı şablonu mu
+    
+    // İlişki takibi
+    relationships: {
+      usedInProposals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Proposal" }],
+      forkedFrom: { type: mongoose.Schema.Types.ObjectId, ref: "Template" },
+      forks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Template" }],
+      categories: [{ type: String, trim: true }],
+      relatedTemplates: [{ type: mongoose.Schema.Types.ObjectId, ref: "Template" }],
+    },
 
     // İstatistikler
     usageCount: { type: Number, default: 0 },
@@ -301,6 +310,72 @@ templateSchema.methods.hasAccess = function (
 templateSchema.methods.incrementUsage = function () {
   this.usageCount += 1;
   this.lastUsedAt = new Date();
+};
+
+// İlişki ekleme metodu
+templateSchema.methods.addRelationship = function (type, itemId) {
+  if (!this.relationships[type]) {
+    this.relationships[type] = [];
+  }
+  
+  if (!this.relationships[type].includes(itemId)) {
+    this.relationships[type].push(itemId);
+  }
+};
+
+// İlişki kaldırma metodu
+templateSchema.methods.removeRelationship = function (type, itemId) {
+  if (this.relationships[type]) {
+    this.relationships[type] = this.relationships[type].filter(
+      id => id.toString() !== itemId.toString()
+    );
+  }
+};
+
+// İlişki kontrolü metodu
+templateSchema.methods.hasRelationship = function (type, itemId) {
+  if (!this.relationships[type]) return false;
+  return this.relationships[type].includes(itemId);
+};
+
+// Şablonu fork etme metodu
+templateSchema.methods.fork = function (newOwnerId) {
+  const forkedTemplate = this.toObject();
+  delete forkedTemplate._id;
+  delete forkedTemplate.createdAt;
+  delete forkedTemplate.updatedAt;
+  delete forkedTemplate.usageCount;
+  delete forkedTemplate.lastUsedAt;
+  
+  forkedTemplate.owner = newOwnerId;
+  forkedTemplate.forkedFrom = this._id;
+  forkedTemplate.isTemplate = false;
+  forkedTemplate.status = "draft";
+  forkedTemplate.relationships = {
+    usedInProposals: [],
+    forkedFrom: this._id,
+    forks: [],
+    categories: [...(this.relationships?.categories || [])],
+    relatedTemplates: []
+  };
+  
+  return forkedTemplate;
+};
+
+// İlgili şablonları getirme metodu
+templateSchema.methods.getRelatedTemplates = function () {
+  return this.relationships.relatedTemplates || [];
+};
+
+// Kategori ekleme metodu
+templateSchema.methods.addCategory = function (category) {
+  if (!this.relationships.categories) {
+    this.relationships.categories = [];
+  }
+  
+  if (!this.relationships.categories.includes(category)) {
+    this.relationships.categories.push(category);
+  }
 };
 
 // Index'ler

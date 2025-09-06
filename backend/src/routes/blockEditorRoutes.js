@@ -5,113 +5,134 @@ const auth = require("../middleware/auth");
 const {
   validateBlockEditorRequest,
 } = require("../middleware/blockEditorValidation");
+const {
+  requireCreateTemplate,
+  requireTemplateAccess,
+  requireAddBlock,
+  addUserPermissions,
+  addTemplatePermissions,
+} = require("../middleware/authorization");
 const blockEditorService = require("../services/blockEditorService");
 const cacheService = require("../services/cacheService");
+const versionControlService = require("../services/versionControlService");
+const bulkOperationsService = require("../services/bulkOperationsService");
 const logger = require("../config/logger");
 
 // Blok editörü için şablon oluşturma
-router.post("/templates", auth, async (req, res) => {
-  try {
-    const {
-      name,
-      description,
-      blocks = [],
-      globalStyles = {},
-      canvasSize = {},
-      category = "custom",
-      tags = [],
-    } = req.body;
+router.post(
+  "/templates",
+  auth,
+  requireCreateTemplate,
+  addUserPermissions,
+  async (req, res) => {
+    try {
+      const {
+        name,
+        description,
+        blocks = [],
+        globalStyles = {},
+        canvasSize = {},
+        category = "custom",
+        tags = [],
+      } = req.body;
 
-    const template = new Template({
-      name,
-      description,
-      blocks,
-      globalStyles,
-      canvasSize,
-      category,
-      tags,
-      owner: req.user.id,
-      createdBy: req.user.id,
-      updatedBy: req.user.id,
-      isTemplate: false,
-    });
+      const template = new Template({
+        name,
+        description,
+        blocks,
+        globalStyles,
+        canvasSize,
+        category,
+        tags,
+        owner: req.user.id,
+        createdBy: req.user.id,
+        updatedBy: req.user.id,
+        isTemplate: false,
+      });
 
-    await template.save();
+      await template.save();
 
-    logger.info("Block editor template created", {
-      templateId: template._id,
-      userId: req.user.id,
-      blockCount: blocks.length,
-    });
-
-    res.success(
-      {
+      logger.info("Block editor template created", {
         templateId: template._id,
-        template: template,
-      },
-      "Şablon başarıyla oluşturuldu"
-    );
-  } catch (error) {
-    logger.error("Error creating block editor template", {
-      error: error.message,
-      userId: req.user.id,
-    });
-    res.error("Şablon oluşturulurken hata oluştu", 500);
+        userId: req.user.id,
+        blockCount: blocks.length,
+      });
+
+      res.success(
+        {
+          templateId: template._id,
+          template: template,
+        },
+        "Şablon başarıyla oluşturuldu"
+      );
+    } catch (error) {
+      logger.error("Error creating block editor template", {
+        error: error.message,
+        userId: req.user.id,
+      });
+      res.error("Şablon oluşturulurken hata oluştu", 500);
+    }
   }
-});
+);
 
 // Blok editörü şablonunu yükleme
-router.get("/templates/:id", auth, async (req, res) => {
-  try {
-    const templateId = req.params.id;
+router.get(
+  "/templates/:id",
+  auth,
+  requireTemplateAccess("view"),
+  addTemplatePermissions,
+  async (req, res) => {
+    try {
+      const templateId = req.params.id;
 
-    // Cache'den kontrol et
-    let template = await cacheService.getCachedTemplate(templateId);
-
-    if (!template) {
-      // Cache'de yok, veritabanından yükle
-      template = await Template.findById(templateId)
-        .populate("owner", "name email")
-        .populate("createdBy", "name email")
-        .populate("updatedBy", "name email");
+      // Cache'den kontrol et
+      let template = await cacheService.getCachedTemplate(templateId);
 
       if (!template) {
-        return res.error("Şablon bulunamadı", 404);
+        // Cache'de yok, veritabanından yükle
+        template = await Template.findById(templateId)
+          .populate("owner", "name email")
+          .populate("createdBy", "name email")
+          .populate("updatedBy", "name email");
+
+        if (!template) {
+          return res.error("Şablon bulunamadı", 404);
+        }
+
+        // Cache'e kaydet
+        await cacheService.cacheTemplate(templateId, template);
       }
 
-      // Cache'e kaydet
-      await cacheService.cacheTemplate(templateId, template);
-    }
-
-    // Erişim kontrolü
-    if (!template.hasAccess(req.user.id, "view")) {
-      return res.error("Bu şablona erişim izniniz yok", 403);
-    }
-
-    // Kullanım sayısını artır (sadece veritabanındaki template için)
-    if (template._id) {
-      const dbTemplate = await Template.findById(templateId);
-      if (dbTemplate) {
-        dbTemplate.incrementUsage();
-        await dbTemplate.save();
+      // Erişim kontrolü
+      if (!template.hasAccess(req.user.id, "view")) {
+        return res.error("Bu şablona erişim izniniz yok", 403);
       }
-    }
 
-    res.success(
-      {
-        template: template,
-      },
-      "Şablon başarıyla yüklendi"
-    );
-  } catch (error) {
-    logger.error("Error loading block editor template", {
-      error: error.message,
-      templateId: req.params.id,
-      userId: req.user.id,
-    });
-    res.error("Şablon yüklenirken hata oluştu", 500);
+      // Kullanım sayısını artır (sadece veritabanındaki template için)
+      if (template._id) {
+        const dbTemplate = await Template.findById(templateId);
+        if (dbTemplate) {
+          dbTemplate.incrementUsage();
+          await dbTemplate.save();
+        }
+      }
+
+      res.success(
+        {
+          template: template,
+        },
+        "Şablon başarıyla yüklendi"
+      );
+    } catch (error) {
+      logger.error("Error loading block editor template", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error("Şablon yüklenirken hata oluştu", 500);
+    }
   }
-});
+);
 
 // Blok editörü şablonunu güncelleme
 router.put("/templates/:id", auth, async (req, res) => {
@@ -448,91 +469,410 @@ router.put("/templates/:id/blocks/reorder", auth, async (req, res) => {
 });
 
 // Toplu blok işlemleri
-router.post("/templates/:id/blocks/bulk", auth, async (req, res) => {
-  try {
-    const template = await Template.findById(req.params.id);
+router.post(
+  "/templates/:id/blocks/bulk",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { operations } = req.body;
 
-    if (!template) {
-      return res.error("Şablon bulunamadı", 404);
-    }
-
-    if (!template.hasAccess(req.user.id, "edit")) {
-      return res.error("Bu şablonda toplu işlem yapma izniniz yok", 403);
-    }
-
-    const { operations } = req.body;
-
-    for (const operation of operations) {
-      switch (operation.type) {
-        case "add":
-          template.addBlock(operation.block, operation.position);
-          break;
-        case "update":
-          template.updateBlock(operation.blockId, operation.updates);
-          break;
-        case "remove":
-          template.removeBlock(operation.blockId);
-          break;
-        case "reorder":
-          template.reorderBlocks(operation.fromIndex, operation.toIndex);
-          break;
+      if (!Array.isArray(operations)) {
+        return res.error("İşlem listesi gerekli", 400);
       }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        operations,
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Toplu işlemler başarıyla gerçekleştirildi");
+    } catch (error) {
+      logger.error("Error performing bulk operations on template", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(
+        error.message || "Toplu işlemler gerçekleştirilirken hata oluştu",
+        500
+      );
     }
-
-    template.updatedBy = req.user.id;
-    template.addToVersionHistory(`Toplu işlem: ${operations.length} işlem`);
-
-    await template.save();
-
-    logger.info("Bulk operations performed on template", {
-      templateId: template._id,
-      operationCount: operations.length,
-      userId: req.user.id,
-    });
-
-    res.success(
-      {
-        template: template,
-      },
-      "Toplu işlemler başarıyla gerçekleştirildi"
-    );
-  } catch (error) {
-    logger.error("Error performing bulk operations on template", {
-      error: error.message,
-      templateId: req.params.id,
-      userId: req.user.id,
-    });
-    res.error("Toplu işlemler gerçekleştirilirken hata oluştu", 500);
   }
-});
+);
+
+// Toplu blok ekleme
+router.post(
+  "/templates/:id/blocks/batch-add",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { blocks, position } = req.body;
+
+      if (!Array.isArray(blocks)) {
+        return res.error("Blok listesi gerekli", 400);
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "batch_add", data: { blocks, position } }],
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Bloklar başarıyla eklendi");
+    } catch (error) {
+      logger.error("Error batch adding blocks", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(error.message || "Bloklar eklenirken hata oluştu", 500);
+    }
+  }
+);
+
+// Toplu blok güncelleme
+router.post(
+  "/templates/:id/blocks/batch-update",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { updates } = req.body;
+
+      if (!Array.isArray(updates)) {
+        return res.error("Güncelleme listesi gerekli", 400);
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "batch_update", data: { updates } }],
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Bloklar başarıyla güncellendi");
+    } catch (error) {
+      logger.error("Error batch updating blocks", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(error.message || "Bloklar güncellenirken hata oluştu", 500);
+    }
+  }
+);
+
+// Toplu blok silme
+router.post(
+  "/templates/:id/blocks/batch-delete",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { blockIds } = req.body;
+
+      if (!Array.isArray(blockIds)) {
+        return res.error("Blok ID listesi gerekli", 400);
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "batch_delete", data: { blockIds } }],
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Bloklar başarıyla silindi");
+    } catch (error) {
+      logger.error("Error batch deleting blocks", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(error.message || "Bloklar silinirken hata oluştu", 500);
+    }
+  }
+);
+
+// Blokları kopyalama
+router.post(
+  "/templates/:id/blocks/duplicate",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { blockId, position } = req.body;
+
+      if (!blockId) {
+        return res.error("Blok ID'si gerekli", 400);
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "duplicate", data: { blockId, position } }],
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Blok başarıyla kopyalandı");
+    } catch (error) {
+      logger.error("Error duplicating block", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(error.message || "Blok kopyalanırken hata oluştu", 500);
+    }
+  }
+);
+
+// Blokları taşıma
+router.post(
+  "/templates/:id/blocks/move",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { blockId, fromPosition, toPosition } = req.body;
+
+      if (!blockId || fromPosition === undefined || toPosition === undefined) {
+        return res.error("Blok ID'si, kaynak ve hedef pozisyon gerekli", 400);
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "move", data: { blockId, fromPosition, toPosition } }],
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Blok başarıyla taşındı");
+    } catch (error) {
+      logger.error("Error moving block", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(error.message || "Blok taşınırken hata oluştu", 500);
+    }
+  }
+);
+
+// Blokları import etme
+router.post(
+  "/templates/:id/blocks/import",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { blocks, position, replaceExisting = false } = req.body;
+
+      if (!Array.isArray(blocks)) {
+        return res.error("Blok listesi gerekli", 400);
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [
+          {
+            type: "import_blocks",
+            data: { blocks, position, replaceExisting },
+          },
+        ],
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Bloklar başarıyla import edildi");
+    } catch (error) {
+      logger.error("Error importing blocks", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(error.message || "Bloklar import edilirken hata oluştu", 500);
+    }
+  }
+);
+
+// Blokları export etme
+router.get(
+  "/templates/:id/blocks/export",
+  auth,
+  requireTemplateAccess("view"),
+  async (req, res) => {
+    try {
+      const { blockIds, includeMetadata = true } = req.query;
+
+      const data = {
+        includeMetadata: includeMetadata === "true",
+      };
+
+      if (blockIds) {
+        data.blockIds = blockIds.split(",");
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "export_blocks", data }],
+        req.user.id
+      );
+
+      res.success(result, "Bloklar başarıyla export edildi");
+    } catch (error) {
+      logger.error("Error exporting blocks", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(error.message || "Bloklar export edilirken hata oluştu", 500);
+    }
+  }
+);
+
+// Blokları validate etme
+router.post(
+  "/templates/:id/blocks/validate",
+  auth,
+  requireTemplateAccess("view"),
+  async (req, res) => {
+    try {
+      const { blockIds } = req.body;
+
+      const data = {};
+      if (blockIds && Array.isArray(blockIds)) {
+        data.blockIds = blockIds;
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "validate_blocks", data }],
+        req.user.id
+      );
+
+      res.success(result, "Blok validasyonu tamamlandı");
+    } catch (error) {
+      logger.error("Error validating blocks", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(
+        error.message || "Blok validasyonu yapılırken hata oluştu",
+        500
+      );
+    }
+  }
+);
+
+// Blok stillerini güncelleme
+router.post(
+  "/templates/:id/blocks/update-styles",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { blockIds, styles, merge = true } = req.body;
+
+      if (!Array.isArray(blockIds) || !styles) {
+        return res.error("Blok ID listesi ve stiller gerekli", 400);
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "update_styles", data: { blockIds, styles, merge } }],
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Blok stilleri başarıyla güncellendi");
+    } catch (error) {
+      logger.error("Error updating block styles", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(
+        error.message || "Blok stilleri güncellenirken hata oluştu",
+        500
+      );
+    }
+  }
+);
+
+// Blok içeriklerini güncelleme
+router.post(
+  "/templates/:id/blocks/update-content",
+  auth,
+  requireTemplateAccess("edit"),
+  async (req, res) => {
+    try {
+      const { blockIds, content, merge = true } = req.body;
+
+      if (!Array.isArray(blockIds) || !content) {
+        return res.error("Blok ID listesi ve içerik gerekli", 400);
+      }
+
+      const result = await bulkOperationsService.executeBulkOperations(
+        req.params.id,
+        [{ type: "update_content", data: { blockIds, content, merge } }],
+        req.user.id
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
+
+      res.success(result, "Blok içerikleri başarıyla güncellendi");
+    } catch (error) {
+      logger.error("Error updating block content", {
+        error: error.message,
+        templateId: req.params.id,
+        userId: req.user.id,
+      });
+      res.error(
+        error.message || "Blok içerikleri güncellenirken hata oluştu",
+        500
+      );
+    }
+  }
+);
 
 // Sürüm geçmişini getirme
 router.get("/templates/:id/versions", auth, async (req, res) => {
   try {
-    const template = await Template.findById(req.params.id);
-
-    if (!template) {
-      return res.error("Şablon bulunamadı", 404);
-    }
-
-    if (!template.hasAccess(req.user.id, "view")) {
-      return res.error("Bu şablonun sürüm geçmişine erişim izniniz yok", 403);
-    }
-
-    res.success(
-      {
-        versions: template.versionHistory,
-        currentVersion: template.version,
-      },
-      "Sürüm geçmişi başarıyla getirildi"
+    const result = await versionControlService.getVersionHistory(
+      req.params.id,
+      req.user.id
     );
+    res.success(result, "Sürüm geçmişi başarıyla getirildi");
   } catch (error) {
     logger.error("Error getting template version history", {
       error: error.message,
       templateId: req.params.id,
       userId: req.user.id,
     });
-    res.error("Sürüm geçmişi getirilirken hata oluştu", 500);
+    res.error(error.message || "Sürüm geçmişi getirilirken hata oluştu", 500);
   }
 });
 
@@ -542,31 +882,24 @@ router.post(
   auth,
   async (req, res) => {
     try {
-      const template = await Template.findById(req.params.id);
-
-      if (!template) {
-        return res.error("Şablon bulunamadı", 404);
-      }
-
-      if (!template.hasAccess(req.user.id, "edit")) {
-        return res.error("Bu şablonu sürüme geri döndürme izniniz yok", 403);
-      }
-
+      const { changeDescription } = req.body;
       const versionNumber = parseInt(req.params.versionNumber);
-      template.revertToVersion(versionNumber);
-      template.updatedBy = req.user.id;
 
-      await template.save();
-
-      logger.info("Template reverted to version", {
-        templateId: template._id,
+      const result = await versionControlService.revertToVersion(
+        req.params.id,
         versionNumber,
-        userId: req.user.id,
-      });
+        req.user.id,
+        changeDescription
+      );
+
+      // Cache'i temizle
+      await cacheService.invalidateTemplate(req.params.id);
 
       res.success(
         {
-          template: template,
+          template: result.template,
+          revertedFrom: result.revertedFrom,
+          revertedTo: result.revertedTo,
         },
         `Şablon sürüm ${versionNumber}'a başarıyla geri döndürüldü`
       );
@@ -577,7 +910,10 @@ router.post(
         versionNumber: req.params.versionNumber,
         userId: req.user.id,
       });
-      res.error("Şablon sürüme geri döndürülürken hata oluştu", 500);
+      res.error(
+        error.message || "Şablon sürüme geri döndürülürken hata oluştu",
+        500
+      );
     }
   }
 );
@@ -703,5 +1039,126 @@ router.get("/ejs/:templateId", auth, async (req, res) => {
     res.error("EJS şablonu render edilirken hata oluştu", 500);
   }
 });
+
+// Sürüm detaylarını getirme
+router.get("/templates/:id/versions/:versionNumber", auth, async (req, res) => {
+  try {
+    const versionNumber = parseInt(req.params.versionNumber);
+    const result = await versionControlService.getVersionDetails(
+      req.params.id,
+      versionNumber,
+      req.user.id
+    );
+    res.success(result, "Sürüm detayları başarıyla getirildi");
+  } catch (error) {
+    logger.error("Error getting version details", {
+      error: error.message,
+      templateId: req.params.id,
+      versionNumber: req.params.versionNumber,
+      userId: req.user.id,
+    });
+    res.error(error.message || "Sürüm detayları getirilirken hata oluştu", 500);
+  }
+});
+
+// Sürüm karşılaştırması
+router.get(
+  "/templates/:id/versions/compare/:version1/:version2",
+  auth,
+  async (req, res) => {
+    try {
+      const version1 = parseInt(req.params.version1);
+      const version2 = parseInt(req.params.version2);
+
+      const result = await versionControlService.compareVersions(
+        req.params.id,
+        version1,
+        version2,
+        req.user.id
+      );
+      res.success(result, "Sürüm karşılaştırması başarıyla tamamlandı");
+    } catch (error) {
+      logger.error("Error comparing versions", {
+        error: error.message,
+        templateId: req.params.id,
+        version1: req.params.version1,
+        version2: req.params.version2,
+        userId: req.user.id,
+      });
+      res.error(
+        error.message || "Sürüm karşılaştırması yapılırken hata oluştu",
+        500
+      );
+    }
+  }
+);
+
+// Sürüm geçmişini temizleme
+router.post("/templates/:id/versions/cleanup", auth, async (req, res) => {
+  try {
+    const { keepVersions = 10 } = req.body;
+
+    const result = await versionControlService.cleanupVersionHistory(
+      req.params.id,
+      req.user.id,
+      keepVersions
+    );
+    res.success(result, "Sürüm geçmişi başarıyla temizlendi");
+  } catch (error) {
+    logger.error("Error cleaning up version history", {
+      error: error.message,
+      templateId: req.params.id,
+      userId: req.user.id,
+    });
+    res.error(error.message || "Sürüm geçmişi temizlenirken hata oluştu", 500);
+  }
+});
+
+// Sürüm istatistikleri
+router.get("/templates/:id/versions/stats", auth, async (req, res) => {
+  try {
+    const result = await versionControlService.getVersionStats(
+      req.params.id,
+      req.user.id
+    );
+    res.success(result, "Sürüm istatistikleri başarıyla getirildi");
+  } catch (error) {
+    logger.error("Error getting version stats", {
+      error: error.message,
+      templateId: req.params.id,
+      userId: req.user.id,
+    });
+    res.error(
+      error.message || "Sürüm istatistikleri getirilirken hata oluştu",
+      500
+    );
+  }
+});
+
+// Sürüm yedekleme (export)
+router.get(
+  "/templates/:id/versions/:versionNumber/export",
+  auth,
+  async (req, res) => {
+    try {
+      const versionNumber = parseInt(req.params.versionNumber);
+
+      const result = await versionControlService.exportVersion(
+        req.params.id,
+        versionNumber,
+        req.user.id
+      );
+      res.success(result, "Sürüm başarıyla yedeklendi");
+    } catch (error) {
+      logger.error("Error exporting version", {
+        error: error.message,
+        templateId: req.params.id,
+        versionNumber: req.params.versionNumber,
+        userId: req.user.id,
+      });
+      res.error(error.message || "Sürüm yedeklenirken hata oluştu", 500);
+    }
+  }
+);
 
 module.exports = router;
