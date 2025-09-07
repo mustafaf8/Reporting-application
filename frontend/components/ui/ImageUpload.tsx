@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { api } from "@/lib/api";
+import { blockEditorAPI } from "@/lib/api/block-editor";
 import toast from "react-hot-toast";
 import ConfirmationModal from "./ConfirmationModal";
 
@@ -10,8 +10,10 @@ interface ImageUploadProps {
   onImageChange?: (url: string | null) => void;
   size?: "sm" | "md" | "lg" | "xl";
   showUploadButton?: boolean;
-  uploadType?: "logo" | "gallery" | "hero";
+  uploadType?: "logo" | "gallery" | "hero" | "block";
   placeholder?: string;
+  blockId?: string;
+  className?: string;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -19,8 +21,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   onImageChange,
   size = "lg",
   showUploadButton = true,
-  uploadType = "logo",
+  uploadType = "block",
   placeholder = "Resim yüklemek için tıklayın",
+  blockId,
+  className = "",
 }) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -35,29 +39,33 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     xl: "w-44 h-44",
   };
 
-  const getUploadEndpoint = () => {
+  const getSuccessMessage = () => {
     switch (uploadType) {
       case "logo":
-        return "/api/upload/logo";
-      case "gallery":
-        return "/api/upload/gallery";
+        return "Logo başarıyla yüklendi";
       case "hero":
-        return "/api/upload/hero";
+        return "Ana resim başarıyla yüklendi";
+      case "gallery":
+        return "Galeri resmi başarıyla yüklendi";
+      case "block":
+        return "Resim başarıyla yüklendi";
       default:
-        return "/api/upload/general";
+        return "Resim başarıyla yüklendi";
     }
   };
 
-  const getFormDataKey = () => {
+  const getDeleteMessage = () => {
     switch (uploadType) {
       case "logo":
-        return "logo";
-      case "gallery":
-        return "galleryImage";
+        return "Logo silindi";
       case "hero":
-        return "heroImage";
+        return "Ana resim silindi";
+      case "gallery":
+        return "Galeri resmi silindi";
+      case "block":
+        return "Resim silindi";
       default:
-        return "image";
+        return "Resim silindi";
     }
   };
 
@@ -71,9 +79,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       return;
     }
 
-    // Dosya boyutunu kontrol et (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Dosya boyutu 5MB'dan küçük olmalıdır");
+    // Dosya boyutunu kontrol et (10MB - blok editör için daha büyük)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Dosya boyutu 10MB'dan küçük olmalıdır");
       return;
     }
 
@@ -92,26 +100,20 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append(getFormDataKey(), file);
-
-      const response = await api.post(getUploadEndpoint(), formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      const response = await blockEditorAPI.uploadAsset(file, {
+        blockId,
+        uploadType,
+        metadata: {
+          originalName: file.name,
+          size: file.size,
+          type: file.type,
         },
       });
 
-      if (response.data.success) {
-        const successMessage =
-          uploadType === "logo"
-            ? "Logo başarıyla yüklendi"
-            : uploadType === "hero"
-            ? "Ana resim başarıyla yüklendi"
-            : "Resim başarıyla yüklendi";
-
+      if (response.success) {
+        const successMessage = getSuccessMessage();
         toast.success(successMessage);
-        const url = response.data.imageUrl;
-        onImageChange && onImageChange(url || null);
+        onImageChange && onImageChange(response.assetUrl);
         setPreviewUrl(null);
       }
     } catch (error: any) {
@@ -130,18 +132,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   const handleDeleteImageConfirm = async () => {
+    if (!currentImageUrl) return;
+
     try {
       setDeleting(true);
-      await api.delete(getUploadEndpoint());
-      const successMessage =
-        uploadType === "logo"
-          ? "Logo silindi"
-          : uploadType === "hero"
-          ? "Ana resim silindi"
-          : "Resim silindi";
-
+      await blockEditorAPI.deleteAsset(currentImageUrl);
+      const successMessage = getDeleteMessage();
       toast.success(successMessage);
-      onImageChange && onImageChange("");
+      onImageChange && onImageChange(null);
       setShowDeleteModal(false);
     } catch (error) {
       console.error("Delete error:", error);
@@ -158,7 +156,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const displayUrl = previewUrl || currentImageUrl;
 
   return (
-    <div className="flex flex-col items-center space-y-4">
+    <div className={`flex flex-col items-center space-y-4 ${className}`}>
       {/* Resim Önizleme */}
       <div className={`${sizeClasses[size]} relative group`}>
         {displayUrl ? (
@@ -310,11 +308,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                   />
                 </svg>
-                {uploadType === "logo"
-                  ? "Logo Yükle"
-                  : uploadType === "hero"
-                  ? "Ana Resim Yükle"
-                  : "Resim Yükle"}
+                {getButtonText()}
               </>
             )}
           </button>
@@ -345,7 +339,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
       {/* Bilgi Metni */}
       <p className="text-xs text-gray-500 text-center max-w-xs">
-        JPG, PNG veya GIF formatında, maksimum 5MB boyutunda resim
+        JPG, PNG veya GIF formatında, maksimum 10MB boyutunda resim
         yükleyebilirsiniz.
       </p>
 
@@ -354,20 +348,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         isOpen={showDeleteModal}
         onClose={handleDeleteImageCancel}
         onConfirm={handleDeleteImageConfirm}
-        title={`${
-          uploadType === "logo"
-            ? "Logo"
-            : uploadType === "hero"
-            ? "Ana Resim"
-            : "Resim"
-        } Silme Onayı`}
-        message={`${
-          uploadType === "logo"
-            ? "Logoyu"
-            : uploadType === "hero"
-            ? "Ana resmi"
-            : "Resmi"
-        } silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
+        title={`${getModalTitle()} Silme Onayı`}
+        message={`${getModalMessage()} silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
         confirmText="Sil"
         cancelText="İptal"
         type="danger"
@@ -375,6 +357,51 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       />
     </div>
   );
+
+  function getButtonText() {
+    switch (uploadType) {
+      case "logo":
+        return "Logo Yükle";
+      case "hero":
+        return "Ana Resim Yükle";
+      case "gallery":
+        return "Galeri Resmi Yükle";
+      case "block":
+        return "Resim Yükle";
+      default:
+        return "Resim Yükle";
+    }
+  }
+
+  function getModalTitle() {
+    switch (uploadType) {
+      case "logo":
+        return "Logo";
+      case "hero":
+        return "Ana Resim";
+      case "gallery":
+        return "Galeri Resmi";
+      case "block":
+        return "Resim";
+      default:
+        return "Resim";
+    }
+  }
+
+  function getModalMessage() {
+    switch (uploadType) {
+      case "logo":
+        return "Logoyu";
+      case "hero":
+        return "Ana resmi";
+      case "gallery":
+        return "Galeri resmini";
+      case "block":
+        return "Resmi";
+      default:
+        return "Resmi";
+    }
+  }
 };
 
 export default ImageUpload;
