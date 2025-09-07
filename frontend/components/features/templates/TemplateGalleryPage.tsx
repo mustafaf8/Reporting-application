@@ -107,21 +107,13 @@ const TemplateGalleryPage: React.FC = () => {
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex space-x-2">
-                      <Link
-                        href={`/editor?templateId=${template._id}`}
-                        className="px-3 py-1 text-sm bg-slate-100 hover:bg-slate-200 rounded transition-colors"
-                      >
-                        Düzenle
-                      </Link>
-                      <Link
-                        href={`/proposals/create?templateId=${template._id}`}
-                        className="px-3 py-1 text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded transition-colors"
-                      >
-                        Kullan
-                      </Link>
-                    </div>
+                  <div className="flex items-center justify-center">
+                    <Link
+                      href={`/proposals/create?templateId=${template._id}`}
+                      className="w-full px-4 py-2 text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded transition-colors text-center font-medium"
+                    >
+                      Kullan
+                    </Link>
                   </div>
                 </div>
               </div>

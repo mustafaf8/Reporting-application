@@ -37,20 +37,62 @@ router.post("/create-checkout-session", auth, async (req, res) => {
 // Customer Portal
 router.post("/customer-portal", auth, async (req, res) => {
   try {
-    if (!stripe)
+    if (!stripe) {
+      logger.warn("Stripe not configured", { userId: req.user.id });
       return res.status(500).json({ message: "Stripe yapılandırılmadı" });
-    const user = await User.findById(req.user.id);
-    if (!user?.subscription?.customerId) {
-      return res.status(400).json({ message: "Abonelik bulunamadı" });
     }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      logger.warn("User not found for customer portal", {
+        userId: req.user.id,
+      });
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    if (!user.subscription?.customerId) {
+      logger.warn("No customer ID found", {
+        userId: req.user.id,
+        subscription: user.subscription,
+      });
+      return res.status(400).json({
+        message: "Abonelik bulunamadı. Önce bir plan seçin.",
+      });
+    }
+
+    logger.info("Creating customer portal session", {
+      userId: req.user.id,
+      customerId: user.subscription.customerId,
+    });
+
     const portal = await stripe.billingPortal.sessions.create({
       customer: user.subscription.customerId,
       return_url: `${req.headers.origin}/profile`,
     });
+
+    logger.info("Customer portal session created", {
+      userId: req.user.id,
+      portalUrl: portal.url,
+    });
+
     return res.json({ url: portal.url });
   } catch (err) {
-    logger.error("Stripe portal error", { error: err.message });
-    return res.status(500).json({ message: "Portal açılamadı" });
+    logger.error("Stripe portal error", {
+      error: err.message,
+      userId: req.user.id,
+      stack: err.stack,
+    });
+
+    if (err.type === "StripeInvalidRequestError") {
+      return res.status(400).json({
+        message:
+          "Geçersiz abonelik bilgisi. Lütfen destek ekibiyle iletişime geçin.",
+      });
+    }
+
+    return res.status(500).json({
+      message: "Portal açılamadı. Lütfen daha sonra tekrar deneyin.",
+    });
   }
 });
 

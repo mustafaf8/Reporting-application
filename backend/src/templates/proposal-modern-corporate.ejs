@@ -549,13 +549,25 @@
     <!-- Hakkında - Statik Son Sayfa -->
     <div class="container page-break">
       <div class="about-hero">
-        <% if (aboutRmr && aboutRmr.images && aboutRmr.images[0]) { %>
-        <img src="<%= aboutRmr.images[0] %>" alt="RMR Hero" />
+        <% if (company && company.heroImage) { %>
+        <img
+          src="<%= company.heroImage %>"
+          alt="<%= company.name || 'Şirket' %> Hero"
+        />
+        <% } else if (customizations && customizations.images &&
+        customizations.images.hero) { %>
+        <img src="<%= customizations.images.hero %>" alt="Hero Image" />
         <% } %>
         <div class="overlay"></div>
         <div class="text">
-          <h2><%= (aboutRmr && aboutRmr.title) || 'RMR Enerji Hakkında' %></h2>
-          <p>Güvenilir ve profesyonel enerji çözümleri</p>
+          <h2>
+            <%= (company && company.name) || (customizations &&
+            customizations.companyName) || 'Şirket Hakkında' %>
+          </h2>
+          <p>
+            <%= (company && company.tagline) || (customizations &&
+            customizations.tagline) || 'Profesyonel ve güvenilir hizmetler' %>
+          </p>
         </div>
       </div>
 
@@ -563,7 +575,9 @@
         <div class="about-summary">
           <h4>Kısa Özet</h4>
           <p class="about-text">
-            <%= (aboutRmr && aboutRmr.description) || '' %>
+            <%= (company && company.description) || (customizations &&
+            customizations.description) || 'Şirketimiz, müşterilerimize en
+            kaliteli hizmeti sunmak için çalışmaktadır.' %>
           </p>
         </div>
         <div class="about-card">
@@ -572,47 +586,64 @@
             class="company-info"
             style="display: flex; flex-wrap: wrap; gap: 8px 10px"
           >
+            <% if (company && company.address) { %>
             <div class="info-chip">
               <span class="label">Adres:</span
-              ><span class="value"
-                >Fevziçakmak, 10777 Sk. No:1AC, 42250 Karatay/Konya</span
-              >
+              ><span class="value"><%= company.address %></span>
             </div>
+            <% } %> <% if (company && company.expertise) { %>
             <div class="info-chip">
               <span class="label">Uzmanlık:</span
-              ><span class="value">GES projeleri, EPC, bakım</span>
+              ><span class="value"><%= company.expertise %></span>
             </div>
+            <% } %> <% if (company && company.serviceArea) { %>
             <div class="info-chip">
               <span class="label">Hizmet Alanı:</span
-              ><span class="value">Türkiye genelinde</span>
+              ><span class="value"><%= company.serviceArea %></span>
             </div>
+            <% } %> <% if (company && company.taxNumber) { %>
             <div class="info-chip">
               <span class="label">VKN:</span
-              ><span class="value">00000000000</span>
+              ><span class="value"><%= company.taxNumber %></span>
             </div>
+            <% } %> <% if (company && company.website) { %>
             <div class="info-chip">
               <span class="label">Web:</span
-              ><span class="value">rmrenerji.com</span>
+              ><span class="value"><%= company.website %></span>
             </div>
+            <% } %> <% if (company && company.email) { %>
             <div class="info-chip">
               <span class="label">İletişim:</span
-              ><span class="value">rmrenerji@rmrenerji.com</span>
+              ><span class="value"><%= company.email %></span>
             </div>
+            <% } %>
           </div>
         </div>
       </div>
 
       <div class="about-stats">
         <div class="stat">
-          <div class="num">300+</div>
+          <div class="num">
+            <%= (company && company.stats && company.stats.projects) ||
+            (customizations && customizations.stats &&
+            customizations.stats.projects) || '100+' %>
+          </div>
           <div class="lbl">Tamamlanan Proje</div>
         </div>
         <div class="stat">
-          <div class="num">14+</div>
+          <div class="num">
+            <%= (company && company.stats && company.stats.experience) ||
+            (customizations && customizations.stats &&
+            customizations.stats.experience) || '5+' %>
+          </div>
           <div class="lbl">Yıl Deneyim</div>
         </div>
         <div class="stat">
-          <div class="num">%97</div>
+          <div class="num">
+            <%= (company && company.stats && company.stats.satisfaction) ||
+            (customizations && customizations.stats &&
+            customizations.stats.satisfaction) || '%95' %>
+          </div>
           <div class="lbl">Müşteri Memnuniyeti</div>
         </div>
       </div>
@@ -620,8 +651,15 @@
       <div class="about-secondary">
         <h4 class="section-title">Öne Çıkan Çalışmalar</h4>
         <div class="gallery">
-          <% if (aboutRmr && aboutRmr.gallery && aboutRmr.gallery.length) { %>
-          <% aboutRmr.gallery.slice(0,4).forEach(function(g){ %>
+          <% if (company && company.gallery && company.gallery.length) { %> <%
+          company.gallery.slice(0,4).forEach(function(g){ %>
+          <div class="tile">
+            <img src="<%= g %>" alt="Galeri" />
+          </div>
+          <% }); %> <% } else if (customizations && customizations.images &&
+          customizations.images.gallery && customizations.images.gallery.length)
+          { %> <% customizations.images.gallery.slice(0,4).forEach(function(g){
+          %>
           <div class="tile">
             <img src="<%= g %>" alt="Galeri" />
           </div>

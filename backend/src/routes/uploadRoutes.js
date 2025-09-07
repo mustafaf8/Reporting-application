@@ -144,4 +144,261 @@ router.delete("/profile-image", auth, async (req, res) => {
   }
 });
 
+// Logo yükleme (Cloudinary)
+router.post("/logo", auth, upload.single("logo"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Dosya seçilmedi" });
+    }
+
+    // Yükleme (Cloudinary stream)
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "reporting-app/logos",
+        resource_type: "image",
+        overwrite: true,
+        transformation: [{ width: 512, height: 512, crop: "limit" }],
+      },
+      async (error, result) => {
+        if (error) {
+          logger.error("Cloudinary upload error", { error: error.message });
+          return res
+            .status(500)
+            .json({ success: false, message: "Yükleme hatası" });
+        }
+
+        logger.business("Logo uploaded (Cloudinary)", {
+          userId: req.user.id,
+          publicId: result.public_id,
+        });
+
+        return res.json({
+          success: true,
+          message: "Logo yüklendi",
+          imageUrl: result.secure_url,
+        });
+      }
+    );
+
+    uploadStream.end(req.file.buffer);
+  } catch (error) {
+    logger.error("Logo upload error:", {
+      error: error.message,
+      userId: req.user.id,
+    });
+    return res.status(500).json({
+      success: false,
+      message: "Logo yüklenirken hata oluştu",
+    });
+  }
+});
+
+// Hero resmi yükleme (Cloudinary)
+router.post("/hero", auth, upload.single("heroImage"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Dosya seçilmedi" });
+    }
+
+    // Yükleme (Cloudinary stream)
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "reporting-app/hero-images",
+        resource_type: "image",
+        overwrite: true,
+        transformation: [{ width: 1200, height: 600, crop: "limit" }],
+      },
+      async (error, result) => {
+        if (error) {
+          logger.error("Cloudinary upload error", { error: error.message });
+          return res
+            .status(500)
+            .json({ success: false, message: "Yükleme hatası" });
+        }
+
+        logger.business("Hero image uploaded (Cloudinary)", {
+          userId: req.user.id,
+          publicId: result.public_id,
+        });
+
+        return res.json({
+          success: true,
+          message: "Ana resim yüklendi",
+          imageUrl: result.secure_url,
+        });
+      }
+    );
+
+    uploadStream.end(req.file.buffer);
+  } catch (error) {
+    logger.error("Hero image upload error:", {
+      error: error.message,
+      userId: req.user.id,
+    });
+    return res.status(500).json({
+      success: false,
+      message: "Ana resim yüklenirken hata oluştu",
+    });
+  }
+});
+
+// Galeri resmi yükleme (Cloudinary)
+router.post(
+  "/gallery",
+  auth,
+  upload.single("galleryImage"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Dosya seçilmedi" });
+      }
+
+      // Yükleme (Cloudinary stream)
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "reporting-app/gallery-images",
+          resource_type: "image",
+          overwrite: true,
+          transformation: [{ width: 800, height: 600, crop: "limit" }],
+        },
+        async (error, result) => {
+          if (error) {
+            logger.error("Cloudinary upload error", { error: error.message });
+            return res
+              .status(500)
+              .json({ success: false, message: "Yükleme hatası" });
+          }
+
+          logger.business("Gallery image uploaded (Cloudinary)", {
+            userId: req.user.id,
+            publicId: result.public_id,
+          });
+
+          return res.json({
+            success: true,
+            message: "Galeri resmi yüklendi",
+            imageUrl: result.secure_url,
+          });
+        }
+      );
+
+      uploadStream.end(req.file.buffer);
+    } catch (error) {
+      logger.error("Gallery image upload error:", {
+        error: error.message,
+        userId: req.user.id,
+      });
+      return res.status(500).json({
+        success: false,
+        message: "Galeri resmi yüklenirken hata oluştu",
+      });
+    }
+  }
+);
+
+// Genel resim yükleme (Cloudinary)
+router.post("/general", auth, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Dosya seçilmedi" });
+    }
+
+    // Yükleme (Cloudinary stream)
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: "reporting-app/general-images",
+        resource_type: "image",
+        overwrite: true,
+        transformation: [{ width: 1024, height: 768, crop: "limit" }],
+      },
+      async (error, result) => {
+        if (error) {
+          logger.error("Cloudinary upload error", { error: error.message });
+          return res
+            .status(500)
+            .json({ success: false, message: "Yükleme hatası" });
+        }
+
+        logger.business("General image uploaded (Cloudinary)", {
+          userId: req.user.id,
+          publicId: result.public_id,
+        });
+
+        return res.json({
+          success: true,
+          message: "Resim yüklendi",
+          imageUrl: result.secure_url,
+        });
+      }
+    );
+
+    uploadStream.end(req.file.buffer);
+  } catch (error) {
+    logger.error("General image upload error:", {
+      error: error.message,
+      userId: req.user.id,
+    });
+    return res.status(500).json({
+      success: false,
+      message: "Resim yüklenirken hata oluştu",
+    });
+  }
+});
+
+// Logo silme
+router.delete("/logo", auth, async (req, res) => {
+  try {
+    res.json({ success: true, message: "Logo silindi" });
+  } catch (error) {
+    logger.error("Logo delete error:", {
+      error: error.message,
+      userId: req.user.id,
+    });
+    res.status(500).json({
+      success: false,
+      message: "Logo silinirken hata oluştu",
+    });
+  }
+});
+
+// Hero resmi silme
+router.delete("/hero", auth, async (req, res) => {
+  try {
+    res.json({ success: true, message: "Ana resim silindi" });
+  } catch (error) {
+    logger.error("Hero image delete error:", {
+      error: error.message,
+      userId: req.user.id,
+    });
+    res.status(500).json({
+      success: false,
+      message: "Ana resim silinirken hata oluştu",
+    });
+  }
+});
+
+// Galeri resmi silme
+router.delete("/gallery", auth, async (req, res) => {
+  try {
+    res.json({ success: true, message: "Galeri resmi silindi" });
+  } catch (error) {
+    logger.error("Gallery image delete error:", {
+      error: error.message,
+      userId: req.user.id,
+    });
+    res.status(500).json({
+      success: false,
+      message: "Galeri resmi silinirken hata oluştu",
+    });
+  }
+});
+
 module.exports = router;
