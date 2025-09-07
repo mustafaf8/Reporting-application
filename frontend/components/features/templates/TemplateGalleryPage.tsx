@@ -109,7 +109,7 @@ const TemplateGalleryPage: React.FC = () => {
 
                   <div className="flex items-center justify-center">
                     <Link
-                      href={`/proposals/create?templateId=${template._id}`}
+                      href={`/editor?templateId=${template._id}`}
                       className="w-full px-4 py-2 text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded transition-colors text-center font-medium"
                     >
                       Kullan

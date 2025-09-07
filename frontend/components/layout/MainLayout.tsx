@@ -72,7 +72,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                         d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                       />
                     </svg>
-                    {t("new_proposal")}
+                    {t("new proposal")}
                   </Link>
                   <Link
                     href="/proposals"

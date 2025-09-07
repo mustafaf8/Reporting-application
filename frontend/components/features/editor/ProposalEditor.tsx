@@ -336,12 +336,24 @@ interface RightPanelProps {
   customizations: Customizations;
   setCustomizations: React.Dispatch<React.SetStateAction<Customizations>>;
   selectedBlockId: string | number | null;
+  expandedSections: {
+    colors: boolean;
+    logo: boolean;
+    images: boolean;
+    company: boolean;
+    blocks: boolean;
+  };
+  toggleSection: (
+    section: "colors" | "logo" | "images" | "company" | "blocks"
+  ) => void;
 }
 
 const RightPanel: React.FC<RightPanelProps> = ({
   customizations,
   setCustomizations,
   selectedBlockId,
+  expandedSections,
+  toggleSection,
 }) => {
   const primary = customizations?.design?.primaryColor || "#4f46e5";
   const secondary = customizations?.design?.secondaryColor || "#7c3aed";
@@ -354,451 +366,504 @@ const RightPanel: React.FC<RightPanelProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* Markalama Bölümü */}
-      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-slate-200">
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <button
+          onClick={() => toggleSection("colors")}
+          className="w-full px-4 py-3 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 transition-colors flex items-center justify-between"
+        >
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
             <h3 className="font-semibold text-slate-800">Markalama</h3>
+            {(customizations?.brand?.logoUrl ||
+              customizations?.design?.primaryColor) && (
+              <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+            )}
           </div>
-        </div>
-        <div className="p-6 space-y-6">
-          {/* Renk Seçimi */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Ana Renk
-              </label>
-              <div className="flex items-center space-x-3">
-                <div
-                  className="w-10 h-10 rounded-lg border-2 border-slate-200 shadow-sm cursor-pointer"
-                  style={{ backgroundColor: primary }}
-                  onClick={() =>
-                    document.getElementById("primary-color")?.click()
-                  }
-                />
-                <input
-                  id="primary-color"
-                  type="color"
-                  value={primary}
-                  onChange={(e) => updateColor("primaryColor", e.target.value)}
-                  className="sr-only"
-                />
-                <div className="flex-1">
+          <svg
+            className={`w-4 h-4 text-slate-500 transition-transform ${
+              expandedSections.colors ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+        {expandedSections.colors && (
+          <div className="p-4 space-y-4">
+            {/* Renk Seçimi */}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Ana Renk
+                </label>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-8 h-8 rounded border-2 border-slate-200 shadow-sm cursor-pointer"
+                    style={{ backgroundColor: primary }}
+                    onClick={() =>
+                      document.getElementById("primary-color")?.click()
+                    }
+                  />
+                  <input
+                    id="primary-color"
+                    type="color"
+                    value={primary}
+                    onChange={(e) =>
+                      updateColor("primaryColor", e.target.value)
+                    }
+                    className="sr-only"
+                  />
                   <input
                     type="text"
                     value={primary}
                     onChange={(e) =>
                       updateColor("primaryColor", e.target.value)
                     }
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="flex-1 px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="#4f46e5"
                   />
                 </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                İkincil Renk
-              </label>
-              <div className="flex items-center space-x-3">
-                <div
-                  className="w-10 h-10 rounded-lg border-2 border-slate-200 shadow-sm cursor-pointer"
-                  style={{ backgroundColor: secondary }}
-                  onClick={() =>
-                    document.getElementById("secondary-color")?.click()
-                  }
-                />
-                <input
-                  id="secondary-color"
-                  type="color"
-                  value={secondary}
-                  onChange={(e) =>
-                    updateColor("secondaryColor", e.target.value)
-                  }
-                  className="sr-only"
-                />
-                <div className="flex-1">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  İkincil Renk
+                </label>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-8 h-8 rounded border-2 border-slate-200 shadow-sm cursor-pointer"
+                    style={{ backgroundColor: secondary }}
+                    onClick={() =>
+                      document.getElementById("secondary-color")?.click()
+                    }
+                  />
+                  <input
+                    id="secondary-color"
+                    type="color"
+                    value={secondary}
+                    onChange={(e) =>
+                      updateColor("secondaryColor", e.target.value)
+                    }
+                    className="sr-only"
+                  />
                   <input
                     type="text"
                     value={secondary}
                     onChange={(e) =>
                       updateColor("secondaryColor", e.target.value)
                     }
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="flex-1 px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="#7c3aed"
                   />
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Logo Yükleme */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">
-              Logo
-            </label>
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 hover:border-indigo-300 transition-colors">
-              <ImageUpload
-                currentImageUrl={customizations?.brand?.logoUrl}
-                onImageChange={(url: string | null) =>
-                  setCustomizations((prev) => ({
-                    ...prev,
-                    brand: { ...prev.brand, logoUrl: url || undefined },
-                  }))
-                }
-                size="lg"
-                uploadType="logo"
-                placeholder="Logo yüklemek için tıklayın"
-              />
-            </div>
-            {customizations?.brand?.logoUrl && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-green-700">
-                    Logo başarıyla yüklendi
-                  </span>
-                </div>
+            {/* Logo Yükleme */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-2">
+                Logo
+              </label>
+              <div className="border-2 border-dashed border-slate-200 rounded-lg p-3 hover:border-indigo-300 transition-colors">
+                <ImageUpload
+                  currentImageUrl={customizations?.brand?.logoUrl}
+                  onImageChange={(url: string | null) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      brand: { ...prev.brand, logoUrl: url || undefined },
+                    }))
+                  }
+                  size="md"
+                  uploadType="logo"
+                  placeholder="Logo yükle"
+                />
               </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Resim Yönetimi */}
-      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-green-50 to-blue-50 px-6 py-4 border-b border-slate-200">
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <button
+          onClick={() => toggleSection("images")}
+          className="w-full px-4 py-3 bg-gradient-to-r from-green-50 to-blue-50 hover:from-green-100 hover:to-blue-100 transition-colors flex items-center justify-between"
+        >
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <h3 className="font-semibold text-slate-800">Resim Yönetimi</h3>
-          </div>
-        </div>
-        <div className="p-6 space-y-6">
-          {/* Hero Resmi */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">
-              Ana Resim (Hero)
-            </label>
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 hover:border-green-300 transition-colors">
-              <ImageUpload
-                currentImageUrl={customizations?.images?.hero}
-                onImageChange={(url: string | null) =>
-                  setCustomizations((prev) => ({
-                    ...prev,
-                    images: { ...prev.images, hero: url || undefined },
-                  }))
-                }
-                size="lg"
-                uploadType="hero"
-                placeholder="Ana resim yüklemek için tıklayın"
-              />
-            </div>
-            {customizations?.images?.hero && (
-              <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-green-700">
-                    Ana resim yüklendi
-                  </span>
-                </div>
-              </div>
+            <h3 className="font-semibold text-slate-800">Resimler</h3>
+            {(customizations?.images?.hero ||
+              customizations?.images?.gallery?.length) && (
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             )}
           </div>
-
-          {/* Galeri Resimleri */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">
-              Galeri Resimleri
-            </label>
-            <div className="space-y-3">
-              {(customizations?.images?.gallery || []).map(
-                (imageUrl, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg"
-                  >
-                    <img
-                      src={imageUrl}
-                      alt={`Galeri ${index + 1}`}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm text-slate-600">
-                        Resim {index + 1}
-                      </p>
-                      <p className="text-xs text-slate-500 truncate">
-                        {imageUrl}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        const newGallery = [
-                          ...(customizations?.images?.gallery || []),
-                        ];
-                        newGallery.splice(index, 1);
-                        setCustomizations((prev) => ({
-                          ...prev,
-                          images: { ...prev.images, gallery: newGallery },
-                        }));
-                      }}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                )
-              )}
-
-              <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 hover:border-green-300 transition-colors">
+          <svg
+            className={`w-4 h-4 text-slate-500 transition-transform ${
+              expandedSections.images ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+        {expandedSections.images && (
+          <div className="p-4 space-y-4">
+            {/* Hero Resmi */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-2">
+                Ana Resim
+              </label>
+              <div className="border-2 border-dashed border-slate-200 rounded-lg p-3 hover:border-green-300 transition-colors">
                 <ImageUpload
-                  currentImageUrl={undefined}
-                  onImageChange={(url: string | null) => {
-                    if (url) {
-                      setCustomizations((prev) => ({
-                        ...prev,
-                        images: {
-                          ...prev.images,
-                          gallery: [...(prev.images?.gallery || []), url],
-                        },
-                      }));
-                    }
-                  }}
+                  currentImageUrl={customizations?.images?.hero}
+                  onImageChange={(url: string | null) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      images: { ...prev.images, hero: url || undefined },
+                    }))
+                  }
                   size="md"
-                  uploadType="gallery"
-                  placeholder="Galeri resmi yüklemek için tıklayın"
+                  uploadType="hero"
+                  placeholder="Ana resim yükle"
                 />
               </div>
+            </div>
 
-              {customizations?.images?.gallery &&
-                customizations.images.gallery.length > 0 && (
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm text-blue-700">
-                        {customizations.images.gallery.length} resim yüklendi
+            {/* Galeri Resimleri */}
+            <div>
+              <label className="block text-xs font-medium text-slate-700 mb-2">
+                Galeri ({customizations?.images?.gallery?.length || 0})
+              </label>
+              <div className="space-y-2">
+                {(customizations?.images?.gallery || [])
+                  .slice(0, 2)
+                  .map((imageUrl, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center space-x-2 p-2 bg-slate-50 rounded"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Galeri ${index + 1}`}
+                        className="w-8 h-8 object-cover rounded"
+                      />
+                      <span className="text-xs text-slate-600 flex-1 truncate">
+                        Resim {index + 1}
                       </span>
+                      <button
+                        onClick={() => {
+                          const newGallery = [
+                            ...(customizations?.images?.gallery || []),
+                          ];
+                          newGallery.splice(index, 1);
+                          setCustomizations((prev) => ({
+                            ...prev,
+                            images: { ...prev.images, gallery: newGallery },
+                          }));
+                        }}
+                        className="p-1 text-red-500 hover:bg-red-50 rounded"
+                      >
+                        <svg
+                          className="w-3 h-3"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
                     </div>
-                  </div>
-                )}
+                  ))}
+
+                <div className="border-2 border-dashed border-slate-200 rounded-lg p-3 hover:border-green-300 transition-colors">
+                  <ImageUpload
+                    currentImageUrl={undefined}
+                    onImageChange={(url: string | null) => {
+                      if (url) {
+                        setCustomizations((prev) => ({
+                          ...prev,
+                          images: {
+                            ...prev.images,
+                            gallery: [...(prev.images?.gallery || []), url],
+                          },
+                        }));
+                      }
+                    }}
+                    size="sm"
+                    uploadType="gallery"
+                    placeholder="Galeri resmi ekle"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Şirket Bilgileri */}
-      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-slate-200">
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <button
+          onClick={() => toggleSection("company")}
+          className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-colors flex items-center justify-between"
+        >
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
             <h3 className="font-semibold text-slate-800">Şirket Bilgileri</h3>
+            {(customizations?.company?.name ||
+              customizations?.company?.tagline) && (
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            )}
           </div>
-        </div>
-        <div className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Şirket Adı
-              </label>
-              <input
-                type="text"
-                value={customizations?.company?.name || ""}
-                onChange={(e) =>
-                  setCustomizations((prev) => ({
-                    ...prev,
-                    company: { ...prev.company, name: e.target.value },
-                  }))
-                }
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="Şirket Adı"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Slogan
-              </label>
-              <input
-                type="text"
-                value={customizations?.company?.tagline || ""}
-                onChange={(e) =>
-                  setCustomizations((prev) => ({
-                    ...prev,
-                    company: { ...prev.company, tagline: e.target.value },
-                  }))
-                }
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="Slogan"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Açıklama
-            </label>
-            <textarea
-              value={customizations?.company?.description || ""}
-              onChange={(e) =>
-                setCustomizations((prev) => ({
-                  ...prev,
-                  company: { ...prev.company, description: e.target.value },
-                }))
-              }
-              rows={3}
-              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              placeholder="Şirket açıklaması"
+          <svg
+            className={`w-4 h-4 text-slate-500 transition-transform ${
+              expandedSections.company ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
             />
-          </div>
+          </svg>
+        </button>
+        {expandedSections.company && (
+          <div className="p-4 space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Şirket Adı
+                </label>
+                <input
+                  type="text"
+                  value={customizations?.company?.name || ""}
+                  onChange={(e) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      company: { ...prev.company, name: e.target.value },
+                    }))
+                  }
+                  className="w-full px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Şirket Adı"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Slogan
+                </label>
+                <input
+                  type="text"
+                  value={customizations?.company?.tagline || ""}
+                  onChange={(e) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      company: { ...prev.company, tagline: e.target.value },
+                    }))
+                  }
+                  className="w-full px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Slogan"
+                />
+              </div>
+            </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Adres
+              <label className="block text-xs font-medium text-slate-700 mb-1">
+                Açıklama
               </label>
-              <input
-                type="text"
-                value={customizations?.company?.address || ""}
+              <textarea
+                value={customizations?.company?.description || ""}
                 onChange={(e) =>
                   setCustomizations((prev) => ({
                     ...prev,
-                    company: { ...prev.company, address: e.target.value },
+                    company: { ...prev.company, description: e.target.value },
                   }))
                 }
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="Adres"
+                rows={2}
+                className="w-full px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                placeholder="Şirket açıklaması"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Uzmanlık
-              </label>
-              <input
-                type="text"
-                value={customizations?.company?.expertise || ""}
-                onChange={(e) =>
-                  setCustomizations((prev) => ({
-                    ...prev,
-                    company: { ...prev.company, expertise: e.target.value },
-                  }))
-                }
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="Uzmanlık alanı"
-              />
-            </div>
-          </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Projeler
-              </label>
-              <input
-                type="text"
-                value={customizations?.company?.stats?.projects || ""}
-                onChange={(e) =>
-                  setCustomizations((prev) => ({
-                    ...prev,
-                    company: {
-                      ...prev.company,
-                      stats: {
-                        ...prev.company.stats,
-                        projects: e.target.value,
-                      },
-                    },
-                  }))
-                }
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="100+"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Adres
+                </label>
+                <input
+                  type="text"
+                  value={customizations?.company?.address || ""}
+                  onChange={(e) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      company: { ...prev.company, address: e.target.value },
+                    }))
+                  }
+                  className="w-full px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Adres"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Uzmanlık
+                </label>
+                <input
+                  type="text"
+                  value={customizations?.company?.expertise || ""}
+                  onChange={(e) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      company: { ...prev.company, expertise: e.target.value },
+                    }))
+                  }
+                  className="w-full px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Uzmanlık"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Deneyim
-              </label>
-              <input
-                type="text"
-                value={customizations?.company?.stats?.experience || ""}
-                onChange={(e) =>
-                  setCustomizations((prev) => ({
-                    ...prev,
-                    company: {
-                      ...prev.company,
-                      stats: {
-                        ...prev.company.stats,
-                        experience: e.target.value,
+
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Projeler
+                </label>
+                <input
+                  type="text"
+                  value={customizations?.company?.stats?.projects || ""}
+                  onChange={(e) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      company: {
+                        ...prev.company,
+                        stats: {
+                          ...prev.company.stats,
+                          projects: e.target.value,
+                        },
                       },
-                    },
-                  }))
-                }
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="5+"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Memnuniyet
-              </label>
-              <input
-                type="text"
-                value={customizations?.company?.stats?.satisfaction || ""}
-                onChange={(e) =>
-                  setCustomizations((prev) => ({
-                    ...prev,
-                    company: {
-                      ...prev.company,
-                      stats: {
-                        ...prev.company.stats,
-                        satisfaction: e.target.value,
+                    }))
+                  }
+                  className="w-full px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="100+"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Deneyim
+                </label>
+                <input
+                  type="text"
+                  value={customizations?.company?.stats?.experience || ""}
+                  onChange={(e) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      company: {
+                        ...prev.company,
+                        stats: {
+                          ...prev.company.stats,
+                          experience: e.target.value,
+                        },
                       },
-                    },
-                  }))
-                }
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="%95"
-              />
+                    }))
+                  }
+                  className="w-full px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="5+"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Memnuniyet
+                </label>
+                <input
+                  type="text"
+                  value={customizations?.company?.stats?.satisfaction || ""}
+                  onChange={(e) =>
+                    setCustomizations((prev) => ({
+                      ...prev,
+                      company: {
+                        ...prev.company,
+                        stats: {
+                          ...prev.company.stats,
+                          satisfaction: e.target.value,
+                        },
+                      },
+                    }))
+                  }
+                  className="w-full px-2 py-1 text-xs border border-slate-200 rounded focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="%95"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Blok Ayarları */}
-      <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200">
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <button
+          onClick={() => toggleSection("blocks")}
+          className="w-full px-4 py-3 bg-gradient-to-r from-slate-50 to-slate-100 hover:from-slate-100 hover:to-slate-200 transition-colors flex items-center justify-between"
+        >
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
             <h3 className="font-semibold text-slate-800">Blok Ayarları</h3>
           </div>
-        </div>
-        <div className="p-6">
-          <div className="text-sm text-slate-600">
-            <span className="font-medium">Seçili blok:</span>{" "}
-            {String(selectedBlockId ?? "Yok")}
-          </div>
-          {selectedBlockId && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm text-blue-700">
-                  Blok düzenleme özellikleri yakında gelecek
-                </span>
-              </div>
+          <svg
+            className={`w-4 h-4 text-slate-500 transition-transform ${
+              expandedSections.blocks ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+        {expandedSections.blocks && (
+          <div className="p-4">
+            <div className="text-xs text-slate-600">
+              <span className="font-medium">Seçili blok:</span>{" "}
+              {String(selectedBlockId ?? "Yok")}
             </div>
-          )}
-        </div>
+            {selectedBlockId && (
+              <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                <div className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                  <span className="text-xs text-blue-700">
+                    Blok düzenleme özellikleri yakında gelecek
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -823,6 +888,19 @@ const ProposalEditor: React.FC = () => {
   const [selectedBlockId, setSelectedBlockId] = useState<
     string | number | null
   >(null);
+  const [expandedSections, setExpandedSections] = useState<{
+    colors: boolean;
+    logo: boolean;
+    images: boolean;
+    company: boolean;
+    blocks: boolean;
+  }>({
+    colors: true,
+    logo: true,
+    images: false,
+    company: false,
+    blocks: false,
+  });
 
   useEffect(() => {
     (async () => {
@@ -867,6 +945,15 @@ const ProposalEditor: React.FC = () => {
 
   const goToForm = () => {
     router.push(`/proposals/create?templateId=${templateId}`);
+  };
+
+  const toggleSection = (
+    section: "colors" | "logo" | "images" | "company" | "blocks"
+  ) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
   };
 
   if (loading) {
@@ -942,6 +1029,8 @@ const ProposalEditor: React.FC = () => {
               customizations={customizations}
               setCustomizations={setCustomizations}
               selectedBlockId={selectedBlockId}
+              expandedSections={expandedSections}
+              toggleSection={toggleSection}
             />
             <div className="mt-6">
               <button

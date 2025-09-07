@@ -35,6 +35,7 @@ const resources = {
       success: "Başarılı",
       warning: "Uyarı",
       info: "Bilgi",
+      "new proposal": "Yeni Teklif",
     },
   },
   en: {
@@ -68,6 +69,7 @@ const resources = {
       success: "Success",
       warning: "Warning",
       info: "Info",
+      "new proposal": "New Proposal",
     },
   },
 };
