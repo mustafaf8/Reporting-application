@@ -224,7 +224,7 @@ mongoose
       uri: MONGODB_URI.replace(/\/\/.*@/, "//***:***@"),
     });
 
-    // Cache servisini başlat
+    // Cache servisini başlat (Redis temporarily disabled)
     await cacheService.initialize();
 
     const server = app.listen(PORT, () => {
