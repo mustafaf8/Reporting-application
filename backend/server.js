@@ -5,6 +5,16 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require("path");
 const logger = require("./src/config/logger");
+const websocketService = require("./src/services/websocketService");
+const cacheService = require("./src/services/cacheService");
+const {
+  xssProtection,
+  sqlInjectionProtection,
+  securityHeaders,
+  securityLogging,
+  securityScan,
+} = require("./src/middleware/security");
+const { specs, swaggerUi } = require("./src/config/swagger");
 
 dotenv.config();
 
@@ -23,6 +33,19 @@ const adminRoutes = require("./src/routes/adminRoutes");
 const uploadRoutes = require("./src/routes/uploadRoutes");
 const templateRoutes = require("./src/routes/templateRoutes");
 const billingRoutes = require("./src/routes/billingRoutes");
+const blockEditorRoutes = require("./src/routes/blockEditorRoutes");
+const assetRoutes = require("./src/routes/assetRoutes");
+const subscriptionRoutes = require("./src/routes/subscriptionRoutes");
+const blockManagementRoutes = require("./src/routes/blockManagementRoutes");
+const userTemplateRoutes = require("./src/routes/userTemplateRoutes");
+const auditLogRoutes = require("./src/routes/auditLogRoutes");
+const relationshipRoutes = require("./src/routes/relationshipRoutes");
+const migrationRoutes = require("./src/routes/migrationRoutes");
+const sharingRoutes = require("./src/routes/sharingRoutes");
+const collaborationRoutes = require("./src/routes/collaborationRoutes");
+const dynamicDataRoutes = require("./src/routes/dynamicDataRoutes");
+const securityRoutes = require("./src/routes/securityRoutes");
+const performanceRoutes = require("./src/routes/performanceRoutes");
 
 const app = express();
 
@@ -37,6 +60,13 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(morgan("combined", { stream: logger.stream }));
+
+// Güvenlik middleware'leri
+app.use(securityHeaders);
+app.use(securityLogging);
+app.use(securityScan);
+app.use(xssProtection);
+app.use(sqlInjectionProtection);
 
 // Static dosya servisi - uploads klasörü için
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -78,6 +108,30 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/billing", billingRoutes);
+app.use("/api/block-editor", blockEditorRoutes);
+app.use("/api/assets", assetRoutes);
+app.use("/api/subscription", subscriptionRoutes);
+app.use("/api/block-management", blockManagementRoutes);
+app.use("/api/user-templates", userTemplateRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
+app.use("/api/relationships", relationshipRoutes);
+app.use("/api/migration", migrationRoutes);
+app.use("/api/sharing", sharingRoutes);
+app.use("/api/collaboration", collaborationRoutes);
+app.use("/api/dynamic-data", dynamicDataRoutes);
+app.use("/api/security", securityRoutes);
+app.use("/api/performance", performanceRoutes);
+
+// Swagger API Documentation
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs, {
+    explorer: true,
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Reporting App API Documentation",
+  })
+);
 
 // Health check
 app.get("/health", (req, res) => {
@@ -165,17 +219,24 @@ if (!process.env.JWT_SECRET && process.env.NODE_ENV === "production") {
 
 mongoose
   .connect(MONGODB_URI)
-  .then(() => {
+  .then(async () => {
     logger.info("MongoDB connected successfully", {
       uri: MONGODB_URI.replace(/\/\/.*@/, "//***:***@"),
     });
-    app.listen(PORT, () => {
+
+    // Cache servisini başlat
+    await cacheService.initialize();
+
+    const server = app.listen(PORT, () => {
       logger.info(`Backend server listening on port ${PORT}`, {
         port: PORT,
         environment: process.env.NODE_ENV || "development",
         corsOrigin: CORS_ORIGIN,
       });
     });
+
+    // WebSocket servisini başlat
+    websocketService.initialize(server);
   })
   .catch((err) => {
     logger.error("MongoDB connection error:", {

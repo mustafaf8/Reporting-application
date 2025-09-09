@@ -4,6 +4,8 @@ const ejs = require("ejs");
 const puppeteer = require("puppeteer");
 
 const Template = require("../models/Template");
+const pdfGenerationService = require("../services/pdfGenerationService");
+const logger = require("../config/logger");
 
 function formatCurrencyTRY(value) {
   return new Intl.NumberFormat("tr-TR", {
@@ -138,4 +140,182 @@ async function generateProposalPdf(req, res) {
   }
 }
 
-module.exports = { generateProposalPdf };
+// Blok editörü şablonundan PDF oluştur
+async function generateFromBlockEditor(req, res) {
+  try {
+    const { templateId, data = {}, options = {} } = req.body;
+
+    if (!templateId) {
+      return res.error("Şablon ID'si gerekli", 400);
+    }
+
+    const result = await pdfGenerationService.generateFromBlockEditor(
+      templateId,
+      data,
+      options
+    );
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${result.templateName}-${Date.now()}.pdf"`
+    );
+    return res.status(200).send(result.pdfBuffer);
+  } catch (error) {
+    logger.error("Error generating PDF from block editor", {
+      error: error.message,
+      templateId: req.body.templateId,
+      userId: req.user?.id
+    });
+    return res.error("PDF oluşturulurken hata oluştu", 500);
+  }
+}
+
+// EJS şablonundan PDF oluştur (geriye uyumluluk)
+async function generateFromEJSTemplate(req, res) {
+  try {
+    const { templateId, data = {}, options = {} } = req.body;
+
+    if (!templateId) {
+      return res.error("Şablon ID'si gerekli", 400);
+    }
+
+    const result = await pdfGenerationService.generateFromEJSTemplate(
+      templateId,
+      data,
+      options
+    );
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${result.templateName}-${Date.now()}.pdf"`
+    );
+    return res.status(200).send(result.pdfBuffer);
+  } catch (error) {
+    logger.error("Error generating PDF from EJS template", {
+      error: error.message,
+      templateId: req.body.templateId,
+      userId: req.user?.id
+    });
+    return res.error("PDF oluşturulurken hata oluştu", 500);
+  }
+}
+
+// Otomatik şablon türü tespiti ile PDF oluştur
+async function generatePDF(req, res) {
+  try {
+    const { templateId, data = {}, options = {} } = req.body;
+
+    if (!templateId) {
+      return res.error("Şablon ID'si gerekli", 400);
+    }
+
+    const result = await pdfGenerationService.generatePDF(
+      templateId,
+      data,
+      options
+    );
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${result.templateName}-${Date.now()}.pdf"`
+    );
+    return res.status(200).send(result.pdfBuffer);
+  } catch (error) {
+    logger.error("Error generating PDF", {
+      error: error.message,
+      templateId: req.body.templateId,
+      userId: req.user?.id
+    });
+    return res.error("PDF oluşturulurken hata oluştu", 500);
+  }
+}
+
+// PDF önizleme oluştur
+async function generatePreview(req, res) {
+  try {
+    const { templateId, data = {}, options = {} } = req.body;
+
+    if (!templateId) {
+      return res.error("Şablon ID'si gerekli", 400);
+    }
+
+    const result = await pdfGenerationService.generatePreview(
+      templateId,
+      data,
+      options
+    );
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="preview-${result.templateName}-${Date.now()}.pdf"`
+    );
+    return res.status(200).send(result.previewBuffer);
+  } catch (error) {
+    logger.error("Error generating PDF preview", {
+      error: error.message,
+      templateId: req.body.templateId,
+      userId: req.user?.id
+    });
+    return res.error("PDF önizleme oluşturulurken hata oluştu", 500);
+  }
+}
+
+// Toplu PDF oluşturma
+async function generateMultiplePDFs(req, res) {
+  try {
+    const { requests } = req.body;
+
+    if (!Array.isArray(requests) || requests.length === 0) {
+      return res.error("PDF istekleri gerekli", 400);
+    }
+
+    const result = await pdfGenerationService.generateMultiplePDFs(requests);
+
+    res.success(result, "Toplu PDF oluşturma tamamlandı");
+  } catch (error) {
+    logger.error("Error generating multiple PDFs", {
+      error: error.message,
+      userId: req.user?.id
+    });
+    return res.error("Toplu PDF oluşturulurken hata oluştu", 500);
+  }
+}
+
+// Şablon türünü tespit et
+async function detectTemplateType(req, res) {
+  try {
+    const { templateId } = req.params;
+
+    if (!templateId) {
+      return res.error("Şablon ID'si gerekli", 400);
+    }
+
+    const templateType = await pdfGenerationService.detectTemplateType(templateId);
+
+    res.success({
+      templateId,
+      templateType
+    }, "Şablon türü tespit edildi");
+  } catch (error) {
+    logger.error("Error detecting template type", {
+      error: error.message,
+      templateId: req.params.templateId,
+      userId: req.user?.id
+    });
+    return res.error("Şablon türü tespit edilirken hata oluştu", 500);
+  }
+}
+
+module.exports = { 
+  generateProposalPdf,
+  generateFromBlockEditor,
+  generateFromEJSTemplate,
+  generatePDF,
+  generatePreview,
+  generateMultiplePDFs,
+  detectTemplateType
+};
