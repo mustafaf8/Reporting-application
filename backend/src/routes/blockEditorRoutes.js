@@ -927,6 +927,16 @@ router.post("/preview", auth, async (req, res) => {
       return res.error("Bloklar gerekli", 400);
     }
 
+    // Geliştirme ortamı için detaylı loglama
+    logger.debug("Preview request received", {
+      userId: req.user.id,
+      blockCount: blocks.length,
+      hasGlobalStyles: !!globalStyles,
+      hasCanvasSize: !!canvasSize,
+      hasData: !!data,
+      blocks: blocks.map((b) => ({ type: b.type, id: b.id })),
+    });
+
     const html = await blockEditorService.renderBlocksToHTML(
       blocks,
       globalStyles || {},
@@ -937,6 +947,7 @@ router.post("/preview", auth, async (req, res) => {
     logger.info("Block editor preview generated", {
       userId: req.user.id,
       blockCount: blocks.length,
+      htmlLength: html.length,
     });
 
     res.success(
@@ -947,11 +958,26 @@ router.post("/preview", auth, async (req, res) => {
       "Önizleme başarıyla oluşturuldu"
     );
   } catch (error) {
+    // Geliştirme ortamı için detaylı hata bilgisi
     logger.error("Error generating block editor preview", {
       error: error.message,
+      stack: error.stack,
       userId: req.user.id,
+      requestBody: {
+        blocks: req.body.blocks?.map((b) => ({ type: b.type, id: b.id })),
+        hasGlobalStyles: !!req.body.globalStyles,
+        hasCanvasSize: !!req.body.canvasSize,
+        hasData: !!req.body.data,
+      },
     });
-    res.error("Önizleme oluşturulurken hata oluştu", 500);
+
+    // Geliştirme ortamında detaylı hata mesajı döndür
+    const errorMessage =
+      process.env.NODE_ENV === "development"
+        ? `Önizleme oluşturulurken hata oluştu: ${error.message}`
+        : "Önizleme oluşturulurken hata oluştu";
+
+    res.error(errorMessage, 500);
   }
 });
 

@@ -1,5 +1,5 @@
-const DOMPurify = require('isomorphic-dompurify');
-const validator = require('validator');
+const DOMPurify = require("isomorphic-dompurify");
+const validator = require("validator");
 const logger = require("../config/logger");
 
 class SecurityService {
@@ -10,17 +10,33 @@ class SecurityService {
    */
   static sanitizeText(text, options = {}) {
     try {
-      if (typeof text !== 'string') {
+      if (typeof text !== "string") {
         return text;
       }
 
       const defaultOptions = {
-        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-        ALLOWED_ATTR: ['class', 'id'],
+        ALLOWED_TAGS: [
+          "b",
+          "i",
+          "em",
+          "strong",
+          "p",
+          "br",
+          "ul",
+          "ol",
+          "li",
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6",
+        ],
+        ALLOWED_ATTR: ["class", "id"],
         KEEP_CONTENT: true,
         RETURN_DOM: false,
         RETURN_DOM_FRAGMENT: false,
-        RETURN_DOM_IMPORT: false
+        RETURN_DOM_IMPORT: false,
       };
 
       const sanitizeOptions = { ...defaultOptions, ...options };
@@ -38,25 +54,61 @@ class SecurityService {
    */
   static sanitizeHTML(html, options = {}) {
     try {
-      if (typeof html !== 'string') {
+      if (typeof html !== "string") {
         return html;
       }
 
       const defaultOptions = {
         ALLOWED_TAGS: [
-          'p', 'br', 'strong', 'em', 'u', 's', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-          'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'a', 'img', 'table',
-          'thead', 'tbody', 'tr', 'th', 'td', 'div', 'span'
+          "p",
+          "br",
+          "strong",
+          "em",
+          "u",
+          "s",
+          "h1",
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "h6",
+          "ul",
+          "ol",
+          "li",
+          "blockquote",
+          "pre",
+          "code",
+          "a",
+          "img",
+          "table",
+          "thead",
+          "tbody",
+          "tr",
+          "th",
+          "td",
+          "div",
+          "span",
         ],
         ALLOWED_ATTR: [
-          'class', 'id', 'href', 'src', 'alt', 'title', 'width', 'height',
-          'colspan', 'rowspan', 'align', 'valign'
+          "class",
+          "id",
+          "href",
+          "src",
+          "alt",
+          "title",
+          "width",
+          "height",
+          "colspan",
+          "rowspan",
+          "align",
+          "valign",
         ],
-        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+        ALLOWED_URI_REGEXP:
+          /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
         KEEP_CONTENT: true,
         RETURN_DOM: false,
         RETURN_DOM_FRAGMENT: false,
-        RETURN_DOM_IMPORT: false
+        RETURN_DOM_IMPORT: false,
       };
 
       const sanitizeOptions = { ...defaultOptions, ...options };
@@ -74,19 +126,19 @@ class SecurityService {
    */
   static sanitizeObject(obj, options = {}) {
     try {
-      if (typeof obj !== 'object' || obj === null) {
+      if (typeof obj !== "object" || obj === null) {
         return obj;
       }
 
       if (Array.isArray(obj)) {
-        return obj.map(item => this.sanitizeObject(item, options));
+        return obj.map((item) => this.sanitizeObject(item, options));
       }
 
       const sanitizedObj = {};
       for (const [key, value] of Object.entries(obj)) {
-        if (typeof value === 'string') {
+        if (typeof value === "string") {
           sanitizedObj[key] = this.sanitizeText(value, options);
-        } else if (typeof value === 'object' && value !== null) {
+        } else if (typeof value === "object" && value !== null) {
           sanitizedObj[key] = this.sanitizeObject(value, options);
         } else {
           sanitizedObj[key] = value;
@@ -106,12 +158,12 @@ class SecurityService {
    */
   static sanitizeEmail(email) {
     try {
-      if (typeof email !== 'string') {
+      if (typeof email !== "string") {
         return null;
       }
 
       const trimmedEmail = email.trim().toLowerCase();
-      
+
       if (!validator.isEmail(trimmedEmail)) {
         return null;
       }
@@ -129,16 +181,18 @@ class SecurityService {
    */
   static sanitizeURL(url) {
     try {
-      if (typeof url !== 'string') {
+      if (typeof url !== "string") {
         return null;
       }
 
       const trimmedURL = url.trim();
-      
-      if (!validator.isURL(trimmedURL, { 
-        protocols: ['http', 'https', 'ftp'],
-        require_protocol: true 
-      })) {
+
+      if (
+        !validator.isURL(trimmedURL, {
+          protocols: ["http", "https", "ftp"],
+          require_protocol: true,
+        })
+      ) {
         return null;
       }
 
@@ -155,13 +209,13 @@ class SecurityService {
    */
   static sanitizePhone(phone) {
     try {
-      if (typeof phone !== 'string') {
+      if (typeof phone !== "string") {
         return null;
       }
 
       // Sadece rakam, +, -, (, ), boşluk karakterlerini tut
-      const cleanedPhone = phone.replace(/[^\d+\-()\s]/g, '');
-      
+      const cleanedPhone = phone.replace(/[^\d+\-()\s]/g, "");
+
       if (cleanedPhone.length < 10) {
         return null;
       }
@@ -179,15 +233,15 @@ class SecurityService {
    */
   static sanitizeFilename(filename) {
     try {
-      if (typeof filename !== 'string') {
+      if (typeof filename !== "string") {
         return null;
       }
 
       // Tehlikeli karakterleri kaldır
       const sanitized = filename
-        .replace(/[<>:"/\\|?*]/g, '')
-        .replace(/\.\./g, '')
-        .replace(/^\./, '')
+        .replace(/[<>:"/\\|?*]/g, "")
+        .replace(/\.\./g, "")
+        .replace(/^\./, "")
         .trim();
 
       if (sanitized.length === 0) {
@@ -207,22 +261,41 @@ class SecurityService {
    */
   static preventSQLInjection(input) {
     try {
-      if (typeof input !== 'string') {
+      if (typeof input !== "string") {
         return input;
       }
 
       // Tehlikeli SQL karakterlerini temizle
       const dangerousChars = [
-        "'", '"', ';', '--', '/*', '*/', 'xp_', 'sp_',
-        'exec', 'execute', 'select', 'insert', 'update',
-        'delete', 'drop', 'create', 'alter', 'union'
+        "'",
+        '"',
+        ";",
+        "--",
+        "xp_",
+        "sp_",
+        "exec",
+        "execute",
+        "select",
+        "insert",
+        "update",
+        "delete",
+        "drop",
+        "create",
+        "alter",
+        "union",
       ];
 
       let sanitized = input;
-      dangerousChars.forEach(char => {
-        const regex = new RegExp(char, 'gi');
-        sanitized = sanitized.replace(regex, '');
+      dangerousChars.forEach((char) => {
+        // Özel karakterleri escape et
+        const escapedChar = char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(escapedChar, "gi");
+        sanitized = sanitized.replace(regex, "");
       });
+
+      // Çoklu yorum karakterlerini ayrı olarak temizle
+      sanitized = sanitized.replace(/\/\*[\s\S]*?\*\//g, "");
+      sanitized = sanitized.replace(/--.*$/gm, "");
 
       return sanitized;
     } catch (error) {
@@ -237,20 +310,34 @@ class SecurityService {
    */
   static preventNoSQLInjection(query) {
     try {
-      if (typeof query !== 'object' || query === null) {
+      if (typeof query !== "object" || query === null) {
         return query;
       }
 
       const sanitizedQuery = {};
-      
+
       for (const [key, value] of Object.entries(query)) {
-        if (typeof value === 'string') {
+        if (typeof value === "string") {
           // $where, $regex gibi tehlikeli operatörleri kontrol et
-          if (key.startsWith('$') && !['$eq', '$ne', '$gt', '$gte', '$lt', '$lte', '$in', '$nin', '$exists', '$regex'].includes(key)) {
+          if (
+            key.startsWith("$") &&
+            ![
+              "$eq",
+              "$ne",
+              "$gt",
+              "$gte",
+              "$lt",
+              "$lte",
+              "$in",
+              "$nin",
+              "$exists",
+              "$regex",
+            ].includes(key)
+          ) {
             continue;
           }
           sanitizedQuery[key] = this.preventSQLInjection(value);
-        } else if (typeof value === 'object' && value !== null) {
+        } else if (typeof value === "object" && value !== null) {
           sanitizedQuery[key] = this.preventNoSQLInjection(value);
         } else {
           sanitizedQuery[key] = value;
@@ -270,12 +357,12 @@ class SecurityService {
    */
   static generateCSRFToken(userId) {
     try {
-      const crypto = require('crypto');
-      const secret = process.env.CSRF_SECRET || 'default-secret';
+      const crypto = require("crypto");
+      const secret = process.env.CSRF_SECRET || "default-secret";
       const timestamp = Date.now().toString();
       const data = `${userId}:${timestamp}:${secret}`;
-      
-      const token = crypto.createHash('sha256').update(data).digest('hex');
+
+      const token = crypto.createHash("sha256").update(data).digest("hex");
       return `${token}:${timestamp}`;
     } catch (error) {
       logger.error(`Error generating CSRF token: ${error.message}`);
@@ -289,20 +376,21 @@ class SecurityService {
    * @param {string} userId - Kullanıcı ID'si
    * @param {number} maxAge - Maksimum yaş (milisaniye)
    */
-  static validateCSRFToken(token, userId, maxAge = 3600000) { // 1 saat
+  static validateCSRFToken(token, userId, maxAge = 3600000) {
+    // 1 saat
     try {
       if (!token || !userId) {
         return false;
       }
 
-      const parts = token.split(':');
+      const parts = token.split(":");
       if (parts.length !== 2) {
         return false;
       }
 
       const [tokenHash, timestamp] = parts;
       const tokenAge = Date.now() - parseInt(timestamp);
-      
+
       if (tokenAge > maxAge) {
         return false;
       }
@@ -321,7 +409,12 @@ class SecurityService {
    * @param {number} maxRequests - Maksimum istek sayısı
    * @param {number} windowMs - Zaman penceresi (milisaniye)
    */
-  static async checkRateLimit(identifier, maxRequests = 100, windowMs = 900000) { // 15 dakika
+  static async checkRateLimit(
+    identifier,
+    maxRequests = 100,
+    windowMs = 900000
+  ) {
+    // 15 dakika
     try {
       // Burada Redis veya başka bir cache sistemi kullanılabilir
       // Şimdilik basit bir in-memory cache kullanıyoruz
@@ -331,18 +424,18 @@ class SecurityService {
 
       const now = Date.now();
       const key = `${identifier}:${Math.floor(now / windowMs)}`;
-      
+
       const currentCount = this.rateLimitCache.get(key) || 0;
-      
+
       if (currentCount >= maxRequests) {
         return false;
       }
 
       this.rateLimitCache.set(key, currentCount + 1);
-      
+
       // Eski kayıtları temizle
       this.cleanupRateLimitCache(now, windowMs);
-      
+
       return true;
     } catch (error) {
       logger.error(`Error checking rate limit: ${error.message}`);
@@ -358,9 +451,9 @@ class SecurityService {
   static cleanupRateLimitCache(now, windowMs) {
     try {
       const cutoff = now - windowMs;
-      
+
       for (const [key, value] of this.rateLimitCache.entries()) {
-        const keyTime = parseInt(key.split(':')[1]) * windowMs;
+        const keyTime = parseInt(key.split(":")[1]) * windowMs;
         if (keyTime < cutoff) {
           this.rateLimitCache.delete(key);
         }
@@ -376,15 +469,16 @@ class SecurityService {
    */
   static generateSecurePassword(length = 12) {
     try {
-      const crypto = require('crypto');
-      const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-      let password = '';
-      
+      const crypto = require("crypto");
+      const charset =
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+      let password = "";
+
       for (let i = 0; i < length; i++) {
         const randomIndex = crypto.randomInt(0, charset.length);
         password += charset[randomIndex];
       }
-      
+
       return password;
     } catch (error) {
       logger.error(`Error generating secure password: ${error.message}`);
@@ -398,38 +492,44 @@ class SecurityService {
    */
   static validatePasswordStrength(password) {
     try {
-      if (typeof password !== 'string') {
-        return { valid: false, message: 'Şifre metin olmalı' };
+      if (typeof password !== "string") {
+        return { valid: false, message: "Şifre metin olmalı" };
       }
 
       if (password.length < 8) {
-        return { valid: false, message: 'Şifre en az 8 karakter olmalı' };
+        return { valid: false, message: "Şifre en az 8 karakter olmalı" };
       }
 
       if (password.length > 128) {
-        return { valid: false, message: 'Şifre en fazla 128 karakter olabilir' };
+        return {
+          valid: false,
+          message: "Şifre en fazla 128 karakter olabilir",
+        };
       }
 
       if (!/[a-z]/.test(password)) {
-        return { valid: false, message: 'Şifre en az bir küçük harf içermeli' };
+        return { valid: false, message: "Şifre en az bir küçük harf içermeli" };
       }
 
       if (!/[A-Z]/.test(password)) {
-        return { valid: false, message: 'Şifre en az bir büyük harf içermeli' };
+        return { valid: false, message: "Şifre en az bir büyük harf içermeli" };
       }
 
       if (!/[0-9]/.test(password)) {
-        return { valid: false, message: 'Şifre en az bir rakam içermeli' };
+        return { valid: false, message: "Şifre en az bir rakam içermeli" };
       }
 
       if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-        return { valid: false, message: 'Şifre en az bir özel karakter içermeli' };
+        return {
+          valid: false,
+          message: "Şifre en az bir özel karakter içermeli",
+        };
       }
 
-      return { valid: true, message: 'Şifre güçlü' };
+      return { valid: true, message: "Şifre güçlü" };
     } catch (error) {
       logger.error(`Error validating password strength: ${error.message}`);
-      return { valid: false, message: 'Şifre kontrol edilemedi' };
+      return { valid: false, message: "Şifre kontrol edilemedi" };
     }
   }
 
@@ -440,16 +540,16 @@ class SecurityService {
    */
   static createSecureHash(input, salt = null) {
     try {
-      const crypto = require('crypto');
-      
+      const crypto = require("crypto");
+
       if (!salt) {
-        salt = crypto.randomBytes(32).toString('hex');
+        salt = crypto.randomBytes(32).toString("hex");
       }
-      
-      const hash = crypto.pbkdf2Sync(input, salt, 100000, 64, 'sha512');
+
+      const hash = crypto.pbkdf2Sync(input, salt, 100000, 64, "sha512");
       return {
-        hash: hash.toString('hex'),
-        salt: salt
+        hash: hash.toString("hex"),
+        salt: salt,
       };
     } catch (error) {
       logger.error(`Error creating secure hash: ${error.message}`);
@@ -465,9 +565,9 @@ class SecurityService {
    */
   static verifyHash(input, hash, salt) {
     try {
-      const crypto = require('crypto');
-      const inputHash = crypto.pbkdf2Sync(input, salt, 100000, 64, 'sha512');
-      return inputHash.toString('hex') === hash;
+      const crypto = require("crypto");
+      const inputHash = crypto.pbkdf2Sync(input, salt, 100000, 64, "sha512");
+      return inputHash.toString("hex") === hash;
     } catch (error) {
       logger.error(`Error verifying hash: ${error.message}`);
       return false;
@@ -481,7 +581,7 @@ class SecurityService {
    * @param {Object} details - Detaylar
    * @param {string} severity - Önem derecesi
    */
-  static logSecurityEvent(event, userId, details = {}, severity = 'info') {
+  static logSecurityEvent(event, userId, details = {}, severity = "info") {
     try {
       const logEntry = {
         timestamp: new Date(),
@@ -489,8 +589,8 @@ class SecurityService {
         userId,
         details,
         severity,
-        ip: details.ip || 'unknown',
-        userAgent: details.userAgent || 'unknown'
+        ip: details.ip || "unknown",
+        userAgent: details.userAgent || "unknown",
       };
 
       logger[severity](`Security Event: ${event}`, logEntry);
