@@ -67,7 +67,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           ),
           confirmButton: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
         };
-      default: // warning
+      default: 
         return {
           icon: (
             <svg
