@@ -9,10 +9,8 @@ const companyConfig = {
 };
 
 export const buildCompanyForPdf = async () => {
-  // Bu fonksiyon PDF oluşturma için şirket bilgilerini hazırlar
   return {
     ...companyConfig,
-    // PDF için ek formatlamalar
     formattedAddress: companyConfig.address.replace(/\n/g, "<br>"),
     formattedPhone: companyConfig.phone,
     formattedEmail: companyConfig.email,
