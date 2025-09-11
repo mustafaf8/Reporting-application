@@ -111,53 +111,104 @@ router.post("/:id/preview", async (req, res) => {
     if (!tpl) return res.status(404).json({ message: "Şablon bulunamadı" });
 
     const path = require("path");
+    const fs = require("fs");
     const ejs = require("ejs");
 
     const payload = req.body || {};
     const file = tpl.ejsFile || "proposal-template.ejs";
-    const abs = path.join(__dirname, "..", "templates", file);
+    let abs = path.join(__dirname, "..", "templates", file);
 
-    const html = await ejs.renderFile(
-      abs,
-      {
-        customerName: payload.customerName || "Önizleme Müşterisi",
-        items: payload.items || [{ name: "Ürün", quantity: 1, unitPrice: 100 }],
-        createdAt: Date.now(),
-        status: payload.status,
-        subtotal: 100,
-        vatRate: Number(payload.vatRate || 0),
-        vatAmount: 0,
-        discountRate: Number(payload.discountRate || 0),
-        extraCosts: Number(payload.extraCosts || 0),
-        grandTotal: 100,
-        company: {
-          ...payload.company,
-          ...payload.customizations?.company,
-          logoUrl:
-            payload.customizations?.brand?.logoUrl || payload.company?.logoUrl,
-          heroImage:
-            payload.customizations?.images?.hero || payload.company?.heroImage,
-          gallery:
-            payload.customizations?.images?.gallery || payload.company?.gallery,
+    // Şablon dosyası var mı kontrol et; yoksa fallback'e dön
+    if (!fs.existsSync(abs)) {
+      const fallback = path.join(
+        __dirname,
+        "..",
+        "templates",
+        "proposal-template.ejs"
+      );
+      if (file !== "proposal-template.ejs" && fs.existsSync(fallback)) {
+        abs = fallback;
+      } else {
+        // Dosya bulunamadıysa 404 döndür ve logla
+        logger.error("Template preview file not found", {
+          templateId: req.params.id,
+          requestedFile: file,
+          resolvedPath: abs,
+        });
+        return res.status(404).json({ message: "Şablon dosyası bulunamadı" });
+      }
+    }
+
+    try {
+      const html = await ejs.renderFile(
+        abs,
+        {
+          customerName: payload.customerName || "Önizleme Müşterisi",
+          items: payload.items || [
+            { name: "Ürün", quantity: 1, unitPrice: 100 },
+          ],
+          createdAt: Date.now(),
+          status: payload.status,
+          subtotal: 100,
+          vatRate: Number(payload.vatRate || 0),
+          vatAmount: 0,
+          discountRate: Number(payload.discountRate || 0),
+          extraCosts: Number(payload.extraCosts || 0),
+          grandTotal: 100,
+          company: {
+            ...payload.company,
+            ...payload.customizations?.company,
+            logoUrl:
+              payload.customizations?.brand?.logoUrl ||
+              payload.company?.logoUrl,
+            heroImage:
+              payload.customizations?.images?.hero ||
+              payload.company?.heroImage,
+            gallery:
+              payload.customizations?.images?.gallery ||
+              payload.company?.gallery,
+          },
+          customer: payload.customer || {},
+          issuer: payload.issuer || {},
+          aboutRmr: payload.aboutRmr,
+          design: payload.customizations?.design || {},
+          customizations: payload.customizations || {},
+          formatCurrency: (v) =>
+            new Intl.NumberFormat("tr-TR", {
+              style: "currency",
+              currency: "TRY",
+            }).format(Number(v || 0)),
         },
-        customer: payload.customer || {},
-        issuer: payload.issuer || {},
-        aboutRmr: payload.aboutRmr,
-        design: payload.customizations?.design || {},
-        customizations: payload.customizations || {},
-        formatCurrency: (v) =>
-          new Intl.NumberFormat("tr-TR", {
-            style: "currency",
-            currency: "TRY",
-          }).format(Number(v || 0)),
-      },
-      { async: true }
-    );
+        { async: true }
+      );
 
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    return res.status(200).send(html);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.status(200).send(html);
+    } catch (renderErr) {
+      logger.error("Template preview render error", {
+        error: renderErr.message,
+        stack: renderErr.stack,
+        templateId: req.params.id,
+        templateFile: file,
+      });
+
+      const isDev = (process.env.NODE_ENV || "development") === "development";
+      const message = isDev
+        ? `Önizleme oluşturulamadı: ${renderErr.message}`
+        : "Önizleme oluşturulamadı";
+      return res.status(500).json({ message });
+    }
   } catch (err) {
-    return res.status(500).json({ message: "Önizleme oluşturulamadı" });
+    logger.error("Template preview unexpected error", {
+      error: err.message,
+      stack: err.stack,
+      templateId: req.params.id,
+    });
+    const isDev = (process.env.NODE_ENV || "development") === "development";
+    const message = isDev
+      ? `Önizleme oluşturulamadı: ${err.message}`
+      : "Önizleme oluşturulamadı";
+    return res.status(500).json({ message });
   }
 });
 
