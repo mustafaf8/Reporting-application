@@ -213,11 +213,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
     const canvasStyles: React.CSSProperties = {
       width: `${safeCanvasWidth}${safeCanvasUnit}`,
       minHeight: `${safeCanvasHeight}${safeCanvasUnit}`,
-      backgroundColor: globalStyles.backgroundColor,
-      fontFamily: globalStyles.fontFamily,
-      fontSize: globalStyles.fontSize,
-      lineHeight: globalStyles.lineHeight,
-      color: globalStyles.textColor,
+      backgroundColor: globalStyles?.backgroundColor ?? "#ffffff",
+      fontFamily: globalStyles?.fontFamily ?? "Inter, sans-serif",
+      fontSize: globalStyles?.fontSize ?? 16,
+      lineHeight: globalStyles?.lineHeight ?? 1.5,
+      color: globalStyles?.textColor ?? "#1f2937",
     };
 
     return (

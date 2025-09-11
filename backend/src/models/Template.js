@@ -127,14 +127,18 @@ const templateSchema = new mongoose.Schema(
     },
     tags: [{ type: String }],
     isTemplate: { type: Boolean, default: false }, // Sistem şablonu mu, kullanıcı şablonu mu
-    
+
     // İlişki takibi
     relationships: {
-      usedInProposals: [{ type: mongoose.Schema.Types.ObjectId, ref: "Proposal" }],
+      usedInProposals: [
+        { type: mongoose.Schema.Types.ObjectId, ref: "Proposal" },
+      ],
       forkedFrom: { type: mongoose.Schema.Types.ObjectId, ref: "Template" },
       forks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Template" }],
       categories: [{ type: String, trim: true }],
-      relatedTemplates: [{ type: mongoose.Schema.Types.ObjectId, ref: "Template" }],
+      relatedTemplates: [
+        { type: mongoose.Schema.Types.ObjectId, ref: "Template" },
+      ],
     },
 
     // İstatistikler
@@ -281,8 +285,10 @@ templateSchema.methods.hasAccess = function (
   userId,
   requiredPermission = "view"
 ) {
-  // Sahip her zaman erişebilir
-  if (this.owner.toString() === userId.toString()) {
+  if (!userId) return false;
+
+  // Sahip her zaman erişebilir (owner olabilirliğini kontrol et)
+  if (this.owner && this.owner.toString() === userId.toString()) {
     return true;
   }
 
@@ -291,19 +297,18 @@ templateSchema.methods.hasAccess = function (
     return true;
   }
 
-  // Paylaşım izinlerini kontrol et
-  const permission = this.sharingPermissions.find(
-    (p) => p.userId.toString() === userId.toString()
+  // Paylaşım izinlerini kontrol et (güvenli erişim)
+  const permission = (this.sharingPermissions || []).find(
+    (p) => p.userId && p.userId.toString() === userId.toString()
   );
   if (!permission) {
     return false;
   }
 
   const permissionLevels = { view: 1, edit: 2, admin: 3 };
-  return (
-    permissionLevels[permission.permission] >=
-    permissionLevels[requiredPermission]
-  );
+  const userLevel = permissionLevels[permission.permission] || 0;
+  const requiredLevel = permissionLevels[requiredPermission] || 0;
+  return userLevel >= requiredLevel;
 };
 
 // Kullanım sayısını artırma metodu
@@ -317,7 +322,7 @@ templateSchema.methods.addRelationship = function (type, itemId) {
   if (!this.relationships[type]) {
     this.relationships[type] = [];
   }
-  
+
   if (!this.relationships[type].includes(itemId)) {
     this.relationships[type].push(itemId);
   }
@@ -327,7 +332,7 @@ templateSchema.methods.addRelationship = function (type, itemId) {
 templateSchema.methods.removeRelationship = function (type, itemId) {
   if (this.relationships[type]) {
     this.relationships[type] = this.relationships[type].filter(
-      id => id.toString() !== itemId.toString()
+      (id) => id.toString() !== itemId.toString()
     );
   }
 };
@@ -346,7 +351,7 @@ templateSchema.methods.fork = function (newOwnerId) {
   delete forkedTemplate.updatedAt;
   delete forkedTemplate.usageCount;
   delete forkedTemplate.lastUsedAt;
-  
+
   forkedTemplate.owner = newOwnerId;
   forkedTemplate.forkedFrom = this._id;
   forkedTemplate.isTemplate = false;
@@ -356,9 +361,9 @@ templateSchema.methods.fork = function (newOwnerId) {
     forkedFrom: this._id,
     forks: [],
     categories: [...(this.relationships?.categories || [])],
-    relatedTemplates: []
+    relatedTemplates: [],
   };
-  
+
   return forkedTemplate;
 };
 
@@ -372,7 +377,7 @@ templateSchema.methods.addCategory = function (category) {
   if (!this.relationships.categories) {
     this.relationships.categories = [];
   }
-  
+
   if (!this.relationships.categories.includes(category)) {
     this.relationships.categories.push(category);
   }
