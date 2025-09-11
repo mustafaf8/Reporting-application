@@ -131,14 +131,15 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
       const updateScale = () => {
         const containerWidth = containerRef.current?.clientWidth || 0;
         const containerHeight = containerRef.current?.clientHeight || 0;
+        const unit = (canvasSize?.unit ?? "px") as string;
         const baseWidth =
-          canvasSize.unit === "px"
-            ? canvasSize.width
-            : Number(canvasSize.width);
+          unit === "px"
+            ? canvasSize?.width ?? 800
+            : Number(canvasSize?.width ?? 800);
         const baseHeight =
-          canvasSize.unit === "px"
-            ? canvasSize.height
-            : Number(canvasSize.height);
+          unit === "px"
+            ? canvasSize?.height ?? 1000
+            : Number(canvasSize?.height ?? 1000);
         if (!containerWidth || !containerHeight || !baseWidth || !baseHeight) {
           setScale(1);
           return;
@@ -163,7 +164,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
       const onResize = () => updateScale();
       window.addEventListener("resize", onResize);
       return () => window.removeEventListener("resize", onResize);
-    }, [canvasSize.width, canvasSize.height, canvasSize.unit]);
+    }, [canvasSize?.width, canvasSize?.height, canvasSize?.unit]);
 
     const handleDragStart = useCallback((event: DragStartEvent) => {
       console.log("Drag started:", event.active.id);
@@ -205,9 +206,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
       [selectBlock]
     );
 
+    const safeCanvasWidth = (canvasSize?.width ?? 800) as number;
+    const safeCanvasHeight = (canvasSize?.height ?? 1000) as number;
+    const safeCanvasUnit = (canvasSize?.unit ?? "px") as string;
+
     const canvasStyles: React.CSSProperties = {
-      width: `${canvasSize.width}${canvasSize.unit}`,
-      minHeight: `${canvasSize.height}${canvasSize.unit}`,
+      width: `${safeCanvasWidth}${safeCanvasUnit}`,
+      minHeight: `${safeCanvasHeight}${safeCanvasUnit}`,
       backgroundColor: globalStyles.backgroundColor,
       fontFamily: globalStyles.fontFamily,
       fontSize: globalStyles.fontSize,
