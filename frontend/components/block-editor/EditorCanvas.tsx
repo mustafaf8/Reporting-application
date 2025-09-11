@@ -83,6 +83,7 @@ const SortableBlock: React.FC<SortableBlockProps> = memo(
           style={style}
           {...attributes}
           {...listeners}
+          onMouseDown={handleClick}
           onClick={handleClick}
           onContextMenu={handleContextMenu}
           className={`sortable-block ${isDragging ? "dragging" : ""}`}
@@ -122,6 +123,39 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
     } = useEditorStore();
 
     const canvasRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [scale, setScale] = useState(1);
+
+    // Kapsayıcı genişliğine göre otomatik ölçekleme (fit-to-width)
+    useEffect(() => {
+      const updateScale = () => {
+        const containerWidth = containerRef.current?.clientWidth || 0;
+        const baseWidth =
+          canvasSize.unit === "px"
+            ? canvasSize.width
+            : Number(canvasSize.width);
+        if (!containerWidth || !baseWidth) {
+          setScale(1);
+          return;
+        }
+        const next = Math.min(1, containerWidth / baseWidth);
+        setScale(Number.isFinite(next) && next > 0 ? next : 1);
+      };
+
+      updateScale();
+
+      const ResizeObs: typeof ResizeObserver | undefined = (window as any)
+        .ResizeObserver;
+      if (ResizeObs && containerRef.current) {
+        const ro = new ResizeObs(() => updateScale());
+        ro.observe(containerRef.current);
+        return () => ro.disconnect();
+      }
+
+      const onResize = () => updateScale();
+      window.addEventListener("resize", onResize);
+      return () => window.removeEventListener("resize", onResize);
+    }, [canvasSize.width, canvasSize.unit]);
 
     const handleDragStart = useCallback((event: DragStartEvent) => {
       console.log("Drag started:", event.active.id);
@@ -175,70 +209,79 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
 
     return (
       <div
-        ref={canvasRef}
-        className={`editor-canvas relative bg-white shadow-lg mx-auto ${className}`}
-        style={canvasStyles}
-        onClick={handleCanvasClick}
+        ref={containerRef}
+        className={`w-full h-full flex items-start justify-center overflow-auto ${className}`}
       >
-        <DndContext
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
+        <div
+          ref={canvasRef}
+          className={"editor-canvas relative bg-white shadow-lg"}
+          style={{
+            ...canvasStyles,
+            transform: `scale(${scale})`,
+            transformOrigin: "top center",
+          }}
+          onClick={handleCanvasClick}
         >
-          <SortableContext
-            items={blocks.map((block) => block.id)}
-            strategy={verticalListSortingStrategy}
+          <DndContext
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
           >
-            <div className="space-y-4 p-4">
-              {blocks.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
-                  <svg
-                    className="w-16 h-16 mx-auto mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            <SortableContext
+              items={blocks.map((block) => block.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-4 p-4">
+                {blocks.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <svg
+                      className="w-16 h-16 mx-auto mb-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    <h3 className="text-lg font-semibold mb-2">Boş Canvas</h3>
+                    <p className="text-sm">
+                      {isPreviewMode
+                        ? "Önizleme modunda - blok eklemek için düzenleme moduna geçin"
+                        : "Blok kütüphanesinden blok ekleyerek başlayın"}
+                    </p>
+                  </div>
+                ) : (
+                  blocks.map((block) => (
+                    <SortableBlock
+                      key={block.id}
+                      block={block}
+                      isSelected={selectedBlockId === block.id}
+                      isPreviewMode={isPreviewMode}
                     />
-                  </svg>
-                  <h3 className="text-lg font-semibold mb-2">Boş Canvas</h3>
-                  <p className="text-sm">
-                    {isPreviewMode
-                      ? "Önizleme modunda - blok eklemek için düzenleme moduna geçin"
-                      : "Blok kütüphanesinden blok ekleyerek başlayın"}
-                  </p>
-                </div>
-              ) : (
-                blocks.map((block) => (
-                  <SortableBlock
-                    key={block.id}
-                    block={block}
-                    isSelected={selectedBlockId === block.id}
-                    isPreviewMode={isPreviewMode}
-                  />
-                ))
-              )}
-            </div>
-          </SortableContext>
-        </DndContext>
+                  ))
+                )}
+              </div>
+            </SortableContext>
+          </DndContext>
 
-        {/* Canvas grid overlay (only in edit mode) */}
-        {!isPreviewMode && (
-          <div
-            className="absolute inset-0 pointer-events-none opacity-5"
-            style={{
-              backgroundImage: `
-              linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-              linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
-            `,
-              backgroundSize: "20px 20px",
-            }}
-          />
-        )}
+          {/* Canvas grid overlay (only in edit mode) */}
+          {!isPreviewMode && (
+            <div
+              className="absolute inset-0 pointer-events-none opacity-5"
+              style={{
+                backgroundImage: `
+                linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+                linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
+              `,
+                backgroundSize: "20px 20px",
+              }}
+            />
+          )}
+        </div>
       </div>
     );
   }
