@@ -43,6 +43,8 @@ interface EditorStore extends EditorState {
     templates?: BlockEditorTemplate[];
     error?: string;
   }>;
+  // Load editor state from a full template object (without fetching)
+  loadTemplateFromData: (template: BlockEditorTemplate) => void;
   generatePreview: () => Promise<{
     success: boolean;
     html?: string;
@@ -378,6 +380,32 @@ export const useEditorStore = create<EditorStore>()(
             error: error instanceof Error ? error.message : "Bilinmeyen hata",
           };
         }
+      },
+
+      loadTemplateFromData: (template: BlockEditorTemplate) => {
+        const newPresent = {
+          blocks: template.blocks ?? [],
+          selectedBlockId: null,
+          isPreviewMode: false,
+          isDirty: false,
+          history: {} as any,
+          globalStyles: template.globalStyles ?? defaultGlobalStyles,
+          canvasSize: template.canvasSize ?? defaultCanvasSize,
+        } as EditorState;
+
+        set(() => ({
+          blocks: template.blocks ?? [],
+          globalStyles: template.globalStyles ?? defaultGlobalStyles,
+          canvasSize: template.canvasSize ?? defaultCanvasSize,
+          selectedBlockId: null,
+          isDirty: false,
+          history: {
+            past: [],
+            present: newPresent as any,
+            future: [],
+            maxHistorySize: 50,
+          },
+        }));
       },
 
       generatePreview: async () => {

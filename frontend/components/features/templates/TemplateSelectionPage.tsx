@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEditorStore } from "@/lib/stores/editor-store";
 import { api } from "@/lib/api";
 import { Template } from "@/types";
 
@@ -10,11 +12,41 @@ interface TemplateCardProps {
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
-  const editorHref = `/editor?templateId=${template._id}`;
+  const router = useRouter();
+  const { loadTemplateFromData } = useEditorStore();
+
+  const handleTemplateSelect = async () => {
+    try {
+      // Sunucudan tam şablonu yükle (gerekirse /api/templates/:id)
+      const res = await fetch(`/api/templates/${template._id}`);
+      const data = await res.json();
+
+      // Editor state'ini doldur
+      loadTemplateFromData({
+        id: data._id || data.id,
+        name: data.name,
+        description: data.description,
+        blocks: data.blocks || [],
+        globalStyles: data.globalStyles || {
+          ...data.globalStyles,
+        },
+        canvasSize: data.canvasSize || { width: 800, height: 1000, unit: "px" },
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
+        userId: data.owner || "",
+      });
+
+      // Editör sayfasına yönlendir
+      router.push("/editor-v2");
+    } catch (_) {
+      // Hata durumda fallback olarak query ile yönlendirebiliriz
+      router.push(`/editor-v2?templateId=${template._id}`);
+    }
+  };
 
   return (
     <div className="group rounded-lg border border-gray-200 overflow-hidden bg-white hover:shadow-md transition-shadow">
-      <Link href={editorHref} className="block">
+      <button onClick={handleTemplateSelect} className="block w-full text-left">
         <div className="aspect-[16/9] bg-gray-100 overflow-hidden">
           {template.previewImageUrl ? (
             <img
@@ -28,7 +60,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
             </div>
           )}
         </div>
-      </Link>
+      </button>
       <div className="p-3">
         <div className="font-semibold text-gray-900 truncate">
           {template.name}
@@ -39,12 +71,12 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
           </div>
         )}
         <div className="mt-3">
-          <Link
-            href={editorHref}
-            className="w-full px-3 py-2 text-center text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded font-medium block"
+          <button
+            onClick={handleTemplateSelect}
+            className="w-full px-3 py-2 text-center text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded font-medium"
           >
             Kullan
-          </Link>
+          </button>
         </div>
       </div>
     </div>

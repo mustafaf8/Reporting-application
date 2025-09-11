@@ -6,12 +6,17 @@ import toast from "react-hot-toast";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import EmptyState from "@/components/ui/EmptyState";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEditorStore } from "@/lib/stores/editor-store";
 import { Template } from "@/types";
 
 const TemplateGalleryPage: React.FC = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectingId, setSelectingId] = useState<string | null>(null);
+  const router = useRouter();
+  const { loadTemplateFromData } = useEditorStore();
 
   useEffect(() => {
     fetchTemplates();
@@ -27,6 +32,42 @@ const TemplateGalleryPage: React.FC = () => {
       toast.error("Şablonlar yüklenirken hata oluştu");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTemplateSelect = async (templateId: string) => {
+    try {
+      setSelectingId(templateId);
+      const { data } = await api.get(`/api/templates/${templateId}`);
+
+      loadTemplateFromData({
+        id: data._id || data.id,
+        name: data.name,
+        description: data.description,
+        blocks: data.blocks || [],
+        globalStyles: data.globalStyles || {
+          primaryColor: "#4f46e5",
+          secondaryColor: "#7c3aed",
+          fontFamily: "Inter, sans-serif",
+          fontSize: 16,
+          lineHeight: 1.5,
+          backgroundColor: "#ffffff",
+          textColor: "#1f2937",
+          borderRadius: 8,
+          spacing: 16,
+        },
+        canvasSize: data.canvasSize || { width: 800, height: 1000, unit: "px" },
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
+        userId: data.owner || "",
+      });
+
+      router.push("/editor-v2");
+    } catch (e) {
+      toast.error("Şablon yüklenemedi");
+      router.push(`/editor-v2?templateId=${templateId}`);
+    } finally {
+      setSelectingId(null);
     }
   };
 
@@ -108,12 +149,17 @@ const TemplateGalleryPage: React.FC = () => {
                   )}
 
                   <div className="flex items-center justify-center">
-                    <Link
-                      href={`/editor?templateId=${template._id}`}
-                      className="w-full px-4 py-2 text-sm bg-indigo-600 text-white hover:bg-indigo-700 rounded transition-colors text-center font-medium"
+                    <button
+                      onClick={() =>
+                        handleTemplateSelect(template._id as string)
+                      }
+                      disabled={selectingId === template._id}
+                      className="w-full px-4 py-2 text-sm bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 rounded transition-colors text-center font-medium"
                     >
-                      Kullan
-                    </Link>
+                      {selectingId === template._id
+                        ? "Yükleniyor..."
+                        : "Kullan"}
+                    </button>
                   </div>
                 </div>
               </div>
