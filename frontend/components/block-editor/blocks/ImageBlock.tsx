@@ -48,7 +48,9 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
               height: block.styles.height,
               maxWidth: block.styles.maxWidth,
               maxHeight: block.styles.maxHeight,
-              borderRadius: block.styles.borderRadius,
+              borderRadius: Number.isFinite(Number(block.styles.borderRadius))
+                ? (block.styles.borderRadius as number)
+                : 0,
             }}
           />
         ) : (
