@@ -218,7 +218,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
     return (
       <div
         ref={containerRef}
-        className={`w-full h-full flex items-center justify-center overflow-auto ${className}`}
+        className={`w-full h-full flex items-start justify-center overflow-auto hide-scrollbar ${className}`}
       >
         <div
           ref={canvasRef}
@@ -239,7 +239,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
               items={blocks.map((block) => block.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-4 p-4">
+              <div className="space-y-4 p-4 py-16">
                 {blocks.length === 0 ? (
                   <div className="text-center py-12 text-slate-500">
                     <svg
