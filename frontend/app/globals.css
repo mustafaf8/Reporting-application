@@ -28,4 +28,13 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Gizli kaydırma çubuğu - tarayıcı uyumlu */
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE ve Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 }

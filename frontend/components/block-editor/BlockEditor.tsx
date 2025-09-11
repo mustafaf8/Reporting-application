@@ -161,7 +161,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ className = "" }) => {
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left sidebar - Block library */}
-        <div className="w-80 lg:w-80 md:w-64 sm:w-56 border-r border-slate-200 bg-white flex flex-col">
+        <div className="w-80 md:w-64 sm:w-56 lg:w-1/5 border-r border-slate-200 bg-white flex flex-col">
           <div className="p-4 border-b border-slate-200">
             <div className="flex space-x-1">
               <button
@@ -210,7 +210,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ className = "" }) => {
         </div>
 
         {/* Right sidebar - Block properties (when a block is selected) */}
-        <div className="w-80 lg:w-80 md:w-64 sm:w-56 border-l border-slate-200 bg-white hidden lg:block">
+        <div className="w-80 md:w-64 sm:w-56 lg:w-1/5 border-l border-slate-200 bg-white hidden lg:block">
           <div className="p-4 border-b border-slate-200">
             <h3 className="text-lg font-semibold text-slate-800">
               Blok Özellikleri
