@@ -126,20 +126,28 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(1);
 
-    // Kapsayıcı genişliğine göre otomatik ölçekleme (fit-to-width)
+    // Kapsayıcı boyutlarına göre otomatik ölçekleme (fit-to-screen)
     useEffect(() => {
       const updateScale = () => {
         const containerWidth = containerRef.current?.clientWidth || 0;
+        const containerHeight = containerRef.current?.clientHeight || 0;
         const baseWidth =
           canvasSize.unit === "px"
             ? canvasSize.width
             : Number(canvasSize.width);
-        if (!containerWidth || !baseWidth) {
+        const baseHeight =
+          canvasSize.unit === "px"
+            ? canvasSize.height
+            : Number(canvasSize.height);
+        if (!containerWidth || !containerHeight || !baseWidth || !baseHeight) {
           setScale(1);
           return;
         }
-        const next = Math.min(1, containerWidth / baseWidth);
-        setScale(Number.isFinite(next) && next > 0 ? next : 1);
+        const fitW = containerWidth / baseWidth;
+        const fitH = containerHeight / baseHeight;
+        const next = Math.min(fitW, fitH);
+        const clamped = Math.max(0.5, Math.min(next, 2));
+        setScale(Number.isFinite(clamped) && clamped > 0 ? clamped : 1);
       };
 
       updateScale();
@@ -155,7 +163,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
       const onResize = () => updateScale();
       window.addEventListener("resize", onResize);
       return () => window.removeEventListener("resize", onResize);
-    }, [canvasSize.width, canvasSize.unit]);
+    }, [canvasSize.width, canvasSize.height, canvasSize.unit]);
 
     const handleDragStart = useCallback((event: DragStartEvent) => {
       console.log("Drag started:", event.active.id);
@@ -210,7 +218,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = memo(
     return (
       <div
         ref={containerRef}
-        className={`w-full h-full flex items-start justify-center overflow-auto ${className}`}
+        className={`w-full h-full flex items-center justify-center overflow-auto ${className}`}
       >
         <div
           ref={canvasRef}

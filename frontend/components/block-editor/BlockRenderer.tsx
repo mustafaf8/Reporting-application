@@ -54,7 +54,9 @@ const blockComponents: Record<
           backgroundColor: block.styles.backgroundColor || "#f8fafc",
           borderColor: block.styles.borderColor || "#e2e8f0",
           borderWidth: block.styles.borderWidth || 1,
-          borderRadius: block.styles.borderRadius || 8,
+          borderRadius: Number.isFinite(Number(block.styles.borderRadius))
+            ? (block.styles.borderRadius as number)
+            : 8,
         }}
       >
         <h3 className="text-lg font-semibold mb-3">Müşteri Bilgileri</h3>
@@ -91,7 +93,9 @@ const blockComponents: Record<
           backgroundColor: block.styles.backgroundColor || "#f8fafc",
           borderColor: block.styles.borderColor || "#e2e8f0",
           borderWidth: block.styles.borderWidth || 1,
-          borderRadius: block.styles.borderRadius || 8,
+          borderRadius: Number.isFinite(Number(block.styles.borderRadius))
+            ? (block.styles.borderRadius as number)
+            : 8,
         }}
       >
         <h3 className="text-lg font-semibold mb-3">Şirket Bilgileri</h3>
@@ -134,7 +138,9 @@ const blockComponents: Record<
           backgroundColor: block.styles.backgroundColor || "#ffffff",
           borderColor: block.styles.borderColor || "#e2e8f0",
           borderWidth: block.styles.borderWidth || 1,
-          borderRadius: block.styles.borderRadius || 8,
+          borderRadius: Number.isFinite(Number(block.styles.borderRadius))
+            ? (block.styles.borderRadius as number)
+            : 8,
         }}
       >
         <h3 className="text-lg font-semibold mb-4">Fiyatlandırma</h3>
