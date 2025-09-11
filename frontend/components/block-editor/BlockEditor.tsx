@@ -70,7 +70,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ className = "" }) => {
 
   return (
     <div
-      className={`block-editor h-screen flex flex-col bg-slate-50 ${className}`}
+      className={`block-editor h-screen flex flex-col bg-slate-50 w-full ${className}`}
     >
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-4 py-3">
@@ -205,7 +205,7 @@ export const BlockEditor: React.FC<BlockEditorProps> = ({ className = "" }) => {
         </div>
 
         {/* Center - Canvas */}
-        <div className="flex-1 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-auto">
+        <div className="flex-1 flex items-start justify-start overflow-auto">
           <EditorCanvas />
         </div>
 

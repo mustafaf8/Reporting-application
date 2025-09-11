@@ -24,7 +24,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen text-slate-800">
       <header className="bg-white/80 backdrop-blur-md shadow-lg border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo ve Başlık */}
             <div className="flex items-center space-x-3">
@@ -391,9 +391,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           )}
         </div>
       </header>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-8">{children}</main>
     </div>
   );
 };
