@@ -6,10 +6,14 @@ class AuthorizationService {
   /**
    * Kullanıcının şablona erişim iznini kontrol et
    */
-  static async checkTemplateAccess(templateId, userId, requiredPermission = "view") {
+  static async checkTemplateAccess(
+    templateId,
+    userId,
+    requiredPermission = "view"
+  ) {
     try {
       const template = await Template.findById(templateId);
-      
+
       if (!template) {
         throw new Error("Şablon bulunamadı");
       }
@@ -20,7 +24,7 @@ class AuthorizationService {
         error: error.message,
         templateId,
         userId,
-        requiredPermission
+        requiredPermission,
       });
       return false;
     }
@@ -32,7 +36,7 @@ class AuthorizationService {
   static async checkSubscriptionLimits(userId, feature) {
     try {
       const user = await User.findById(userId);
-      
+
       if (!user) {
         throw new Error("Kullanıcı bulunamadı");
       }
@@ -45,7 +49,7 @@ class AuthorizationService {
         return {
           allowed: false,
           reason: "Bu özellik abonelik planınızda mevcut değil",
-          requiredPlan: this.getRequiredPlan(feature)
+          requiredPlan: this.getRequiredPlan(feature),
         };
       }
 
@@ -59,7 +63,7 @@ class AuthorizationService {
           reason: `${feature} kullanım limitiniz aşıldı`,
           currentUsage: usage,
           limit: limit,
-          requiredPlan: this.getRequiredPlan(feature)
+          requiredPlan: this.getRequiredPlan(feature),
         };
       }
 
@@ -67,17 +71,17 @@ class AuthorizationService {
         allowed: true,
         currentUsage: usage,
         limit: limit,
-        remaining: limit - usage
+        remaining: limit - usage,
       };
     } catch (error) {
       logger.error("Error checking subscription limits", {
         error: error.message,
         userId,
-        feature
+        feature,
       });
       return {
         allowed: false,
-        reason: "Abonelik kontrolü yapılamadı"
+        reason: "Abonelik kontrolü yapılamadı",
       };
     }
   }
@@ -95,8 +99,8 @@ class AuthorizationService {
           assets: 10,
           collaborators: 0,
           versionHistory: 10,
-          exports: 5
-        }
+          exports: 5,
+        },
       },
       basic: {
         features: ["view", "create", "edit", "delete", "share", "collaborate"],
@@ -106,31 +110,48 @@ class AuthorizationService {
           assets: 50,
           collaborators: 3,
           versionHistory: 50,
-          exports: 25
-        }
+          exports: 25,
+        },
       },
       pro: {
-        features: ["view", "create", "edit", "delete", "share", "collaborate", "advanced"],
+        features: [
+          "view",
+          "create",
+          "edit",
+          "delete",
+          "share",
+          "collaborate",
+          "advanced",
+        ],
         usage: {
           templates: 100,
           blocks: 1000,
           assets: 200,
           collaborators: 10,
           versionHistory: 100,
-          exports: 100
-        }
+          exports: 100,
+        },
       },
       enterprise: {
-        features: ["view", "create", "edit", "delete", "share", "collaborate", "advanced", "admin"],
+        features: [
+          "view",
+          "create",
+          "edit",
+          "delete",
+          "share",
+          "collaborate",
+          "advanced",
+          "admin",
+        ],
         usage: {
           templates: -1, // Unlimited
           blocks: -1,
           assets: -1,
           collaborators: -1,
           versionHistory: -1,
-          exports: -1
-        }
-      }
+          exports: -1,
+        },
+      },
     };
 
     return limits[plan] || limits.free;
@@ -144,7 +165,7 @@ class AuthorizationService {
       share: "basic",
       collaborate: "basic",
       advanced: "pro",
-      admin: "enterprise"
+      admin: "enterprise",
     };
 
     return featurePlans[feature] || "free";
@@ -158,30 +179,35 @@ class AuthorizationService {
       switch (feature) {
         case "templates":
           return await Template.countDocuments({ owner: userId });
-        
+
         case "blocks":
           const templates = await Template.find({ owner: userId });
-          return templates.reduce((total, template) => total + (template.blocks?.length || 0), 0);
-        
+          return templates.reduce(
+            (total, template) => total + (template.blocks?.length || 0),
+            0
+          );
+
         case "assets":
           // Asset modeli kullanılarak hesaplanacak
           return 0; // Placeholder
-        
+
         case "collaborators":
-          const sharedTemplates = await Template.find({ 
-            "sharingPermissions.userId": userId 
+          const sharedTemplates = await Template.find({
+            "sharingPermissions.userId": userId,
           });
           return sharedTemplates.length;
-        
+
         case "versionHistory":
           const userTemplates = await Template.find({ owner: userId });
-          return userTemplates.reduce((total, template) => 
-            total + (template.versionHistory?.length || 0), 0);
-        
+          return userTemplates.reduce(
+            (total, template) => total + (template.versionHistory?.length || 0),
+            0
+          );
+
         case "exports":
           // Export sayısı için ayrı bir model gerekebilir
           return 0; // Placeholder
-        
+
         default:
           return 0;
       }
@@ -189,7 +215,7 @@ class AuthorizationService {
       logger.error("Error getting feature usage", {
         error: error.message,
         userId,
-        feature
+        feature,
       });
       return 0;
     }
@@ -208,13 +234,13 @@ class AuthorizationService {
   static async canAddBlock(userId, templateId) {
     const [accessCheck, subscriptionCheck] = await Promise.all([
       this.checkTemplateAccess(templateId, userId, "edit"),
-      this.checkSubscriptionLimits(userId, "blocks")
+      this.checkSubscriptionLimits(userId, "blocks"),
     ]);
 
     return {
       allowed: accessCheck && subscriptionCheck.allowed,
       accessCheck,
-      subscriptionCheck
+      subscriptionCheck,
     };
   }
 
@@ -250,10 +276,14 @@ class AuthorizationService {
    * Kullanıcının şablonu düzenleme iznini kontrol et
    */
   static async canEditTemplate(userId, templateId) {
-    const accessCheck = await this.checkTemplateAccess(templateId, userId, "edit");
+    const accessCheck = await this.checkTemplateAccess(
+      templateId,
+      userId,
+      "edit"
+    );
     return {
       allowed: accessCheck,
-      accessCheck
+      accessCheck,
     };
   }
 
@@ -261,10 +291,14 @@ class AuthorizationService {
    * Kullanıcının şablonu silme iznini kontrol et
    */
   static async canDeleteTemplate(userId, templateId) {
-    const accessCheck = await this.checkTemplateAccess(templateId, userId, "admin");
+    const accessCheck = await this.checkTemplateAccess(
+      templateId,
+      userId,
+      "admin"
+    );
     return {
       allowed: accessCheck,
-      accessCheck
+      accessCheck,
     };
   }
 
@@ -272,26 +306,35 @@ class AuthorizationService {
    * Kullanıcının şablonu görüntüleme iznini kontrol et
    */
   static async canViewTemplate(userId, templateId) {
-    const accessCheck = await this.checkTemplateAccess(templateId, userId, "view");
+    const accessCheck = await this.checkTemplateAccess(
+      templateId,
+      userId,
+      "view"
+    );
     return {
       allowed: accessCheck,
-      accessCheck
+      accessCheck,
     };
   }
 
   /**
    * Kullanıcının şablonu paylaşma iznini kontrol et
    */
-  static async canShareTemplateWithUser(userId, templateId, targetUserId, permission) {
+  static async canShareTemplateWithUser(
+    userId,
+    templateId,
+    targetUserId,
+    permission
+  ) {
     const [canShare, canAccess] = await Promise.all([
       this.canShareTemplate(userId),
-      this.checkTemplateAccess(templateId, userId, "admin")
+      this.checkTemplateAccess(templateId, userId, "admin"),
     ]);
 
     return {
       allowed: canShare.allowed && canAccess,
       canShare,
-      canAccess
+      canAccess,
     };
   }
 
@@ -299,10 +342,14 @@ class AuthorizationService {
    * Kullanıcının sürüm geçmişine erişim iznini kontrol et
    */
   static async canAccessVersionHistory(userId, templateId) {
-    const accessCheck = await this.checkTemplateAccess(templateId, userId, "view");
+    const accessCheck = await this.checkTemplateAccess(
+      templateId,
+      userId,
+      "view"
+    );
     return {
       allowed: accessCheck,
-      accessCheck
+      accessCheck,
     };
   }
 
@@ -310,10 +357,14 @@ class AuthorizationService {
    * Kullanıcının sürüme geri dönme iznini kontrol et
    */
   static async canRevertVersion(userId, templateId) {
-    const accessCheck = await this.checkTemplateAccess(templateId, userId, "edit");
+    const accessCheck = await this.checkTemplateAccess(
+      templateId,
+      userId,
+      "edit"
+    );
     return {
       allowed: accessCheck,
-      accessCheck
+      accessCheck,
     };
   }
 
@@ -337,7 +388,7 @@ class AuthorizationService {
   static async getUserPermissions(userId) {
     try {
       const user = await User.findById(userId);
-      
+
       if (!user) {
         throw new Error("Kullanıcı bulunamadı");
       }
@@ -361,12 +412,12 @@ class AuthorizationService {
         canUseWithLimit: async (feature) => {
           const check = await this.checkSubscriptionLimits(userId, feature);
           return check.allowed;
-        }
+        },
       };
     } catch (error) {
       logger.error("Error getting user permissions", {
         error: error.message,
-        userId
+        userId,
       });
       throw error;
     }
@@ -378,14 +429,15 @@ class AuthorizationService {
   static async getTemplatePermissions(userId, templateId) {
     try {
       const template = await Template.findById(templateId);
-      
+
       if (!template) {
         throw new Error("Şablon bulunamadı");
       }
 
-      const isOwner = template.owner.toString() === userId.toString();
+      const isOwner =
+        template.owner && template.owner.toString() === userId.toString();
       const sharingPermission = template.sharingPermissions.find(
-        p => p.userId.toString() === userId.toString()
+        (p) => p.userId.toString() === userId.toString()
       );
 
       return {
@@ -394,14 +446,15 @@ class AuthorizationService {
         canDelete: template.hasAccess(userId, "admin"),
         canShare: template.hasAccess(userId, "admin"),
         isOwner,
-        permission: sharingPermission?.permission || (isOwner ? "owner" : "none"),
-        isPublic: template.isPublic
+        permission:
+          sharingPermission?.permission || (isOwner ? "owner" : "none"),
+        isPublic: template.isPublic,
       };
     } catch (error) {
       logger.error("Error getting template permissions", {
         error: error.message,
         userId,
-        templateId
+        templateId,
       });
       throw error;
     }
