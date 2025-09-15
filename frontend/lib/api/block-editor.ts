@@ -67,8 +67,18 @@ class BlockEditorAPI {
   async loadTemplate(templateId: string): Promise<BlockEditorTemplate> {
     try {
       const response = await api.get(`${this.baseUrl}/templates/${templateId}`);
-      return response.data;
-    } catch (error) {
+      return response.data?.data?.template || response.data;
+    } catch (error: any) {
+      // 403 durumunda public template endpoint'ine düş
+      if (error?.response?.status === 403) {
+        try {
+          const fallback = await api.get(`/api/templates/${templateId}`);
+          return fallback.data?.data?.template || fallback.data;
+        } catch (fallbackErr) {
+          console.error("Load template fallback error:", fallbackErr);
+          throw new Error("Şablon yüklenemedi");
+        }
+      }
       console.error("Load template error:", error);
       throw new Error("Şablon yüklenemedi");
     }

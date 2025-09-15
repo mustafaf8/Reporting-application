@@ -37,7 +37,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template }) => {
       });
 
       // Editör sayfasına yönlendir
-      router.push("/editor-v2");
+      router.push(`/editor-v2?templateId=${template._id}`);
     } catch (_) {
       // Hata durumda fallback olarak query ile yönlendirebiliriz
       router.push(`/editor-v2?templateId=${template._id}`);

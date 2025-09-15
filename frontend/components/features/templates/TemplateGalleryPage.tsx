@@ -62,7 +62,7 @@ const TemplateGalleryPage: React.FC = () => {
         userId: data.owner || "",
       });
 
-      router.push("/editor-v2");
+      router.push(`/editor-v2?templateId=${templateId}`);
     } catch (e) {
       toast.error("Şablon yüklenemedi");
       router.push(`/editor-v2?templateId=${templateId}`);

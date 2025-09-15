@@ -383,20 +383,29 @@ export const useEditorStore = create<EditorStore>()(
       },
 
       loadTemplateFromData: (template: BlockEditorTemplate) => {
+        const mergedGlobal = {
+          ...defaultGlobalStyles,
+          ...(template.globalStyles as any),
+        };
+        const mergedCanvas = {
+          ...defaultCanvasSize,
+          ...(template.canvasSize as any),
+        };
+
         const newPresent = {
           blocks: template.blocks ?? [],
           selectedBlockId: null,
           isPreviewMode: false,
           isDirty: false,
           history: {} as any,
-          globalStyles: template.globalStyles ?? defaultGlobalStyles,
-          canvasSize: template.canvasSize ?? defaultCanvasSize,
+          globalStyles: mergedGlobal,
+          canvasSize: mergedCanvas,
         } as EditorState;
 
         set(() => ({
           blocks: template.blocks ?? [],
-          globalStyles: template.globalStyles ?? defaultGlobalStyles,
-          canvasSize: template.canvasSize ?? defaultCanvasSize,
+          globalStyles: mergedGlobal,
+          canvasSize: mergedCanvas,
           selectedBlockId: null,
           isDirty: false,
           history: {
